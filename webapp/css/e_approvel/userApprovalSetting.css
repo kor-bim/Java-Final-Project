@@ -1,0 +1,92 @@
+/**
+ * @author 윤한빈
+ * @since 2021. 2. 23.
+ * @version 1.0
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일        수정자       수정내용
+ * --------     --------    ----------------------
+ * 2021. 2. 23.      윤한빈       최초작성
+ * Copyright (c) 2021 by DDIT All right reserved
+ * </pre>
+ */
+@charset "UTF-8";
+
+
+
+.filebox label {
+	display: inline-block;
+	padding: .5em .75em;
+	color: #999;
+	font-size: inherit;
+	line-height: normal;
+	vertical-align: middle;
+	background-color: #fdfdfd;
+	cursor: pointer;
+	border: 1px solid #ebebeb;
+	border-bottom-color: #e2e2e2;
+	border-radius: .25em;
+}
+
+.filebox input[type="file"] { /* 파일 필드 숨기기 */
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
+}
+
+.btnForm {
+	margin-top: 20px;
+	margin: 5px;
+	float: right;
+}
+
+.button:focus {
+	display: inline-block;
+}
+
+.on {
+	border: 2px solid silver;
+}
+
+.org {
+	margin-left: 20px;
+	margin-right: 20px;
+	border: 1px solid silver;
+	width: 200px;
+	height: 430px;
+	overflow: -moz-scrollbars-horizontal;
+	overflow-x: auto;
+	overflow-y: auto;
+}
+
+.list {
+	border: 1px solid silver;
+	width: 200px;
+	height: 430px;
+	overflow: -moz-scrollbars-horizontal;
+	overflow-x: auto;
+	overflow-y: auto;
+}
+
+.addAuto {
+	border: 1px solid silver;
+	height: 176px;
+	width: 150px;
+}
+
+.readAuto {
+	border: 1px solid silver;
+	height: 400px;
+	width: 150px;
+}
+
+select[multiple] {
+	border: none;
+	overflow: hidden;
+	height: 400px;
+}

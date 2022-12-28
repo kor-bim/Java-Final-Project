@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.elecapproval.dao.ElecApprovalUserDAO">
+	<sql id="searchFrag">
+		<if test="searchVO!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+			<choose>
+				<when test="'alName'.equals(searchVO.searchType)">
+					AND INSTR(AL_NAME, #{searchVO.searchWord}) > 0
+				</when>
+				<otherwise>
+					OR INSTR(AL_NAME, #{searchVO.searchWord}) > 0
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+	
+	<select id="selectAprvlLineListCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		  FROM APRVL_LINE A
+		  WHERE MEM_ID = #{userId}
+		  AND AL_SAVE = 'Y'
+		<include refid="searchFrag" />
+	</select>
+	
+	<select id="selectAprvlLineList" parameterType="PagingVO" resultType="ApprovalLineVO">
+			SELECT B.*
+				  FROM (
+			       SELECT ROWNUM RNUM, A.*
+			         FROM (
+			             SELECT
+							    AL_NO,
+							    AL_NAME,
+							    AL_SAVE,
+							    MEM_ID,
+							    AL_CODE
+							FROM
+							    APRVL_LINE
+							WHERE MEM_ID = #{userId}
+							AND AL_SAVE = 'Y'
+	       <include refid="searchFrag" />) A) B
+	 	   WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	 	   ORDER BY RNUM ASC
+	</select>
+	
+	<insert id="insertApprovalLine" parameterType="ApprovalLineVO">
+		<selectKey order="BEFORE" keyProperty="alNo" resultType="int">
+			SELECT NVL(MAX(AL_NO), 0)+1
+			  FROM APRVL_LINE
+		</selectKey>
+		INSERT INTO APRVL_LINE(
+		        AL_NO,
+		        AL_NAME,
+		        AL_SAVE,
+		        MEM_ID,
+		        AL_CODE
+		    )  VALUES (
+		        #{alNo},
+		       	#{alName},
+		        'Y',
+		        #{memId},
+		        #{alCode}
+		    )
+	</insert>
+	
+	<insert id="insertApprovalLineDetail" parameterType="ApprovalLineVO">	
+		INSERT ALL
+		<foreach collection="lineDetailList" item="detail" index="idx">
+			INTO AL_DETAIL (
+				  AL_NO
+				, ALD_NO
+				, MEM_ID
+				, ALDT_CODE
+			) VALUES (
+				#{alNo}
+				, #{idx}+1
+				, #{detail.memId}
+				, #{detail.aldtCode}
+			)
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+	
+<!-- 	<delete id="deleteApprovalLine" parameterType="ApprovalLineVO" statementType="CALLABLE"> -->
+<!-- 		{ -->
+<!-- 			CALL PROC_DELETE_APRVL_LINE(#{alNo}) -->
+<!-- 		} -->
+<!-- 	</delete> -->
+	<delete id="deleteApprovalLine" parameterType="ApprovalLineVO">
+		UPDATE APRVL_LINE
+		   SET AL_SAVE = 'N'
+  		 WHERE AL_NO = #{alNo}
+	</delete>
+	
+</mapper>

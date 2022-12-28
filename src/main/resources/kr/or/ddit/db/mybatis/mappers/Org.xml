@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.hr.organization.dao.OrgMapDAO">
+
+
+
+
+	<select id="selectDeptLine"  parameterType="DeptVO" resultType="kr.or.ddit.hr.organization.vo.DeptVO">
+<!-- 		SELECT B.*  -->
+<!-- 		  FROM ( -->
+<!-- 			SELECT A.*, ROWNUM RNUM -->
+<!-- 			  FROM ( -->
+<!-- 			SELECT DEPT_CODE -->
+<!-- 					, DEPT_NAME -->
+<!-- 					, DEPT_LEVEL -->
+<!-- 					, DEPT_PARENT_CODE -->
+<!-- 			  FROM DEPARTMENT -->
+<!-- 			 ORDER BY ROWID DESC -->
+<!-- 			 ) A  -->
+<!-- 		 ) B -->
+<!-- 		 <![CDATA[ -->
+<!-- 		 	WHERE RNUM >= #{startRow} AND RNUM <= #{endRow} -->
+<!-- 		 ]]>  -->
+		SELECT DEPT_CODE, DEPT_NAME, DEPT_LEVEL, DEPT_PARENT_CODE, SYS_CONNECT_BY_PATH (DEPT_NAME, ' > ') LINE
+		  FROM DEPARTMENT
+         WHERE DEPT_CODE = #{deptCode}
+		 START WITH DEPT_PARENT_CODE IS NULL
+	   CONNECT BY PRIOR DEPT_CODE = DEPT_PARENT_CODE
+         ORDER BY DEPT_LEVEL
+		
+	</select>
+	<select id="selectPsList" resultType="PositionVO">
+		SELECT PS_CODE, PS_NAME, PS_GRADE, PS_USE_YN 
+			FROM POSITION_CODE
+			WHERE PS_USE_YN = 'Y'
+		 	ORDER BY PS_GRADE
+	</select>
+	
+	<select id="selectJobList" resultType="JobVO">
+		SELECT JOB_CODE, JOB_NAME FROM JOB_CODE ORDER BY TO_NUMBER(JOB_CODE)
+	</select>
+	
+	<select id="selectDeptList" resultType="kr.or.ddit.hr.organization.vo.DeptVO">
+		SELECT
+		    DEPT_CODE,
+		    DEPT_NAME,
+		    DEPT_LEVEL,
+		    DEPT_PARENT_CODE
+		FROM
+		    DEPARTMENT
+	</select>
+	
+	<update id="updatePosition" parameterType="kr.or.ddit.hr.organization.vo.PositionVO">
+			MERGE INTO POSITION_CODE PS
+			    USING 
+			    	(
+			    	SELECT #{psName}  AS NAME
+			    	  FROM SYS.DUAL
+			    	) B
+			       ON (PS.PS_NAME = B.NAME)
+			    WHEN MATCHED THEN
+			        UPDATE SET PS.PS_GRADE = #{psGrade}, PS.PS_USE_YN = #{psUseYn}
+			    WHEN NOT MATCHED THEN
+			        INSERT (PS.PS_CODE, PS.PS_NAME, PS.PS_GRADE, PS.PS_USE_YN)
+			        VALUES ((SELECT MAX(TO_NUMBER(PS_CODE)) FROM POSITION_CODE)+1, #{psName}, #{psGrade}, #{psUseYn})
+	</update>
+	
+	<update id="updateJob" parameterType="JobVO">
+		MERGE INTO JOB_CODE J
+			USING DUAL
+			ON (J.JOB_CODE = #{jobCode})
+			WHEN MATCHED THEN
+				UPDATE SET J.JOB_NAME = #{jobName}
+			WHEN NOT MATCHED THEN
+				INSERT (J.JOB_CODE, J.JOB_NAME)
+				VALUES ((SELECT NVL(MAX(TO_NUMBER(JOB_CODE)), 0) FROM JOB_CODE)+1, #{jobName})
+	</update>
+	<delete id="deleteJob" parameterType="JobVO">
+		DELETE FROM JOB_CODE
+		<where>
+			<if test="delJobCode!=null and delJobCode.length gt 0">
+				JOB_CODE IN 
+				<foreach collection="delJobCode" item="jobCode" open="(" close=")" separator=",">
+					#{jobCode}
+				</foreach>	
+			</if>
+		</where>
+	</delete>
+	
+<!-- 조직 + 구성원 트리 -->
+	<resultMap type="DeptVO" id="deptMap" autoMapping="true">
+		<id property="deptCode" column="DEPT_CODE" />
+		<collection property="deptMemList" javaType="java.util.List" ofType="MemberVO" autoMapping="true"/>
+	</resultMap>
+	<select id="retrieveDeptMemList" resultMap="deptMap">
+		SELECT  DEPT.DEPT_CODE
+			    , DEPT.DEPT_NAME
+			    , DEPT.DEPT_LEVEL
+			    , DEPT.DEPT_PARENT_CODE
+			    , MEM.MEM_ID
+			    , MEM.MEM_NAME
+			    , MEM.MEM_SIGN_IMG
+				, MEM.MEM_PASS
+				, MEM.MEM_HDATE
+				, MEM.MEM_MAIL
+				, MEM.MEM_COMTEL
+				, MEM.MEM_HP
+				, MEM.MEM_ZIP
+				, MEM.MEM_ADD
+				, MEM.MEM_BIRTH
+				, MEM.MEM_ETC
+				, MEM.MEM_IMG
+				, MEM.AUTO_LOGIN
+				, MEM.ID_REMEM
+				, MEM.AS_CODE
+				, MEM.LANG_CODE
+				, MEM.ROLE_CODE
+				, MEM.ROLE_NAME
+				, MEM.PS_CODE
+				, MEM.PS_NAME
+				, MEM.JOB_CODE
+				, MEM.JOB_NAME
+	  	  FROM DEPARTMENT DEPT, V_MEMBER MEM
+	 	 WHERE DEPT.DEPT_CODE = MEM.DEPT_CODE
+	  	   AND MEM.AS_CODE = 'ON'
+         START WITH DEPT.DEPT_PARENT_CODE IS NULL
+	   CONNECT BY PRIOR DEPT.DEPT_CODE = DEPT.DEPT_PARENT_CODE
+        GROUP BY DEPT.DEPT_CODE
+			    , DEPT.DEPT_NAME
+			    , DEPT.DEPT_LEVEL
+			    , DEPT.DEPT_PARENT_CODE
+			    , MEM.MEM_ID
+			    , MEM.MEM_NAME
+			    , MEM.MEM_SIGN_IMG
+				, MEM.MEM_PASS
+				, MEM.MEM_HDATE
+				, MEM.MEM_MAIL
+				, MEM.MEM_COMTEL
+				, MEM.MEM_HP
+				, MEM.MEM_ZIP
+				, MEM.MEM_ADD
+				, MEM.MEM_BIRTH
+				, MEM.MEM_ETC
+				, MEM.MEM_IMG
+				, MEM.AUTO_LOGIN
+				, MEM.ID_REMEM
+				, MEM.AS_CODE
+				, MEM.LANG_CODE
+				, MEM.ROLE_CODE
+				, MEM.ROLE_NAME
+				, MEM.PS_CODE
+				, MEM.PS_NAME
+				, MEM.JOB_CODE
+				, MEM.JOB_NAME
+         ORDER BY DEPT.DEPT_LEVEL
+	</select>	
+	
+	<insert id="insertDept" parameterType="DeptVO">
+		INSERT INTO DEPARTMENT (DEPT_CODE, DEPT_NAME, DEPT_LEVEL, DEPT_PARENT_CODE)
+		VALUES ((SELECT NVL(MAX(TO_NUMBER(DEPT_CODE)),10000) FROM DEPARTMENT)+1
+				, #{deptName}
+				, #{deptLevel}+1
+				, #{deptParentCode}
+		)
+	</insert>
+	
+	<delete id="deleteDept" parameterType="DeptVO">
+		DELETE FROM DEPARTMENT 
+		 WHERE DEPT_CODE IN(
+  			 SELECT DEPT_CODE
+		 	   FROM DEPARTMENT
+			  START WITH DEPT_PARENT_CODE = #{deptCode}
+	        CONNECT BY PRIOR DEPT_CODE = DEPT_PARENT_CODE
+		) OR DEPT_CODE = #{deptCode}
+	</delete>
+	
+	<update id="updateMemberDeptCode" parameterType="DeptVO">
+		UPDATE MEMBER SET DEPT_CODE = NULL
+		WHERE DEPT_CODE IN(
+  			 SELECT DEPT_CODE
+		 	   FROM DEPARTMENT
+			  START WITH DEPT_PARENT_CODE = #{deptCode}
+	        CONNECT BY PRIOR DEPT_CODE = DEPT_PARENT_CODE
+	    ) OR DEPT_CODE = #{deptCode}
+	</update>
+	
+	<select id="selectMemberDeptCodeCount" parameterType="DeptVO" resultType="int">
+		SELECT COUNT(*)
+		FROM MEMBER
+		WHERE DEPT_CODE IN(
+  			 SELECT DEPT_CODE
+		 	   FROM DEPARTMENT
+			  START WITH DEPT_PARENT_CODE = #{deptCode}
+	        CONNECT BY PRIOR DEPT_CODE = DEPT_PARENT_CODE
+	    ) OR DEPT_CODE = #{deptCode}
+	</select>
+	
+	<update id="updateDeptName" parameterType="DeptVO">
+		UPDATE DEPARTMENT
+		SET DEPT_NAME = #{deptName}
+		WHERE DEPT_CODE = #{deptCode}
+	</update>
+	
+</mapper>

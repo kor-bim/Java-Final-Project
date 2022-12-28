@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.board.dao.VoteBoardDAO">
+
+	<insert id="insertVoteBoard" parameterType="VoteBoardVO">
+		<selectKey order="BEFORE" resultType="integer" keyProperty="vbNo">
+			SELECT NVL(MAX(VB_NO),0)+1 
+			  FROM VOTE_BOARD 
+		</selectKey>   
+		INSERT INTO VOTE_BOARD (
+		    VB_NO
+		    , VB_TITLE
+		    , VB_CONTENT
+		    , VB_DATE
+		    , VB_END
+		    , VB_DUP
+		    , MEM_ID
+		) VALUES (
+		    #{vbNo,jdbcType=NUMERIC} 
+		    , #{vbTitle,jdbcType=VARCHAR}
+		    , #{vbContent,jdbcType=VARCHAR}
+		    , SYSDATE
+		    , #{vbEnd,jdbcType=DATE}
+		    , #{vbDup,jdbcType=CHAR}
+		    , #{memId,jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<!--voteCate insert -->
+	<insert id="insertVoteCate" parameterType="VoteCateVO">
+		INSERT ALL
+		<foreach collection="vcNames" item="vcName" index="idx">
+			INTO VOTE_CATE (
+				VC_NO
+				, VB_NO
+				, VC_NAME
+			) VALUES (
+				#{idx}+1
+				, #{vbNo,jdbcType=NUMERIC}
+				, #{vcName,jdbcType=VARCHAR}
+			)
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+
+	<select id="selectVoteList" resultType="VoteBoardVO">
+		WITH VOTEWRITER AS 
+		( 
+		 SELECT MEM_ID ID 
+		        , MEM_NAME NAME
+		   FROM MEMBER
+		)
+		SELECT B.*
+		  FROM (
+		        SELECT ROWNUM RNUM, A.* 
+		          FROM (
+		                SELECT
+		                    VB_NO
+		                    , VB_TITLE
+		                    , VB_CONTENT
+		                    , TO_CHAR(VB_DATE, 'YYYY-MM-DD') VB_DATE
+		                    , TO_CHAR(VB_END, 'YYYY-MM-DD') VB_END
+		                    , VB_COUNT
+		                    , VB_DUP
+		                    , VOTEWRITER.NAME AS MEM_ID
+		                FROM VOTE_BOARD 
+		                    LEFT OUTER JOIN VOTEWRITER ON (VOTE_BOARD.MEM_ID=VOTEWRITER.ID)
+		        ) A
+		      )B
+		 ORDER BY VB_NO DESC
+	</select>
+	
+	<resultMap type="VoteBoardVO" id="VoteBoardMap" autoMapping="true">
+		<id property="vbNo" column="VB_NO" />
+		<collection property="voteCateList" javaType="java.util.List" ofType="VoteCateVO" autoMapping="true">
+			<result property="vcNo" column="VC_NO"/>
+		</collection>
+	</resultMap>
+	<select id="selectVoteBoardView" parameterType="int" resultMap="VoteBoardMap">
+		WITH CATE AS(
+		    SELECT DISTINCT VC_NO
+		                    , VB_NO NO
+		                    , VC_NAME
+		      FROM VOTE_CATE
+		) 
+		, MEMINFO AS ( 
+		    SELECT MEM_ID ID  
+			       , MEM_NAME NAME
+			  FROM MEMBER
+		)
+		, VOTERS AS (
+            SELECT VB_NO BOARDNO, VC_NO CATENO, COUNT(VC_NO)VCCNT
+              FROM VOTE_PRTCP
+             GROUP BY VB_NO, VC_NO
+		)
+		SELECT                                                 									
+		    VB_NO
+		    , VB_TITLE
+		    , VB_CONTENT
+		    , TO_CHAR(VB_DATE, 'YYYY-MM-DD') VB_DATE
+		    , TO_CHAR(VB_END, 'YYYY-MM-DD') VB_END
+		    , VB_COUNT
+		    , VB_DUP
+		    , VB_DEL_YN
+		    , MEMINFO.ID AS MEM_ID
+		    , MEMINFO.NAME AS MEM_NAME
+		    , CATE.VC_NO
+		    , CATE.VC_NAME
+		    , NVL(VCCNT,0) AS VOTE_COUNT 
+		FROM VOTE_BOARD LEFT OUTER JOIN CATE ON (VOTE_BOARD.VB_NO = CATE.NO)
+		                LEFT OUTER JOIN MEMINFO ON (VOTE_BOARD.MEM_ID=MEMINFO.ID)
+                        LEFT OUTER JOIN VOTERS ON (VOTE_BOARD.VB_NO = VOTERS.BOARDNO AND CATE.VC_NO = VOTERS.CATENO)
+		WHERE VOTE_BOARD.VB_NO = #{vb_no}
+		ORDER BY CATE.VC_NO
+	</select>
+	<select id="selectVoters" parameterType="int" resultType="VotePrtcpVO">
+		SELECT VOTE_PRTCP.MEM_ID
+		      , VOTE_PRTCP.VC_NO
+		  FROM VOTE_BOARD LEFT OUTER JOIN VOTE_PRTCP ON (VOTE_BOARD.VB_NO = VOTE_PRTCP.VB_NO)
+		 WHERE VOTE_BOARD.VB_NO = #{vb_no}
+	</select>
+	
+	<insert id="insertVotePrtcpVO" parameterType="VotePrtcpVO">
+		INSERT ALL
+		<foreach collection="vcNos" item="vcNo" index="idx">
+			INTO vote_prtcp (
+			    MEM_ID
+			    , VB_NO
+			    , VC_NO
+			) VALUES (
+			    #{memId},
+			    #{vbNo},
+			    #{vcNo}
+			)
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+	
+<!-- 투표게시판 수정 -->	
+	<!-- 1. 투표정보 변경 -->
+	<update id="updateVoteBoard" parameterType="VoteBoardVO">
+		UPDATE VOTE_BOARD
+		SET
+		  VB_TITLE   = #{vbTitle  ,jdbcType=VARCHAR}
+		, VB_CONTENT = #{vbContent,jdbcType=VARCHAR}
+		, VB_END     = #{vbEnd    ,jdbcType=DATE}
+		, VB_DUP     = #{vbDup    ,jdbcType=CHAR}
+		, VB_PASS    = #{vbPass   ,jdbcType=VARCHAR}
+		, VB_HIT     = #{vbHit    ,jdbcType=NUMERIC}
+		WHERE VB_NO = #{vbNo}
+	</update>
+	
+	<!-- 2. 응답결과 초기화  -->
+	<delete id="resetVotePrtcpVO" parameterType="VoteBoardVO">
+		DELETE FROM VOTE_PRTCP
+		 WHERE VB_NO = #{vbNo}
+	</delete>
+	
+	<!-- 3. 선택지 변경 ( 있는 건 update, 없는 건 insert ) -->
+	<update id="updateVoteCate" parameterType="VoteFormVO">
+		MERGE INTO VOTE_CATE A
+			USING (
+			<foreach collection="voteCateVO.vcNames" item="cate" open="" close="" separator="union" index="index">
+				SELECT #{index}+1  as vcNo
+						, #{cate} as vcName
+				  FROM SYS.DUAL 
+			</foreach>
+			) B ON (A.VB_NO = #{voteBoardVO.vbNo} AND A.VC_NO = B.vcNo)
+			WHEN MATCHED THEN
+			   UPDATE SET
+				VC_NAME     = B.vcName
+			WHEN NOT MATCHED THEN
+				INSERT (VB_NO, VC_NO, VC_NAME)
+				VALUES (#{voteBoardVO.vbNo}, B.vcNo, B.vcName)
+	</update>
+	
+	
+<!-- 투표 삭제 -->
+	<!-- 1. resetVotePrtcpVO --> 
+	<!-- 2. -->
+	<delete id="deleteVoteCate" parameterType="VoteFormVO">
+		DELETE FROM VOTE_CATE
+		 WHERE VB_NO = #{voteBoardVO.vbNo}
+	</delete>
+
+	<!-- 3. 투표글 삭제 (업데이트) -->
+	<update id="deleteVoteBoard" parameterType="VoteFormVO">
+		UPDATE VOTE_BOARD
+		   SET 
+				VB_TITLE     = 'X 삭제된 게시글 X'
+				, VB_CONTENT = 'X 내용이 삭제되었습니다. X'
+				, VB_DEL_YN  = 'Y'
+		 WHERE VB_NO = #{voteBoardVO.vbNo}
+	</update>	
+
+<!-- 조회수 증가 -->
+	<update id="incrementHit" parameterType="int">
+		UPDATE VOTE_BOARD
+		SET VB_HIT = VB_HIT + 1
+		WHERE VB_NO = #{vb_no}
+	</update>
+	
+<!-- 투표 참여수 증가 -->	
+	<update id="incrementVoteCnt" parameterType="int">
+		UPDATE VOTE_BOARD
+		SET VB_COUNT = VB_COUNT + 1
+		WHERE VB_NO = #{vb_no}
+	</update>
+<!-- 완료된 투표 조회 -->
+	<resultMap type="VoteBoardVO" id="VoteCompleteMap" autoMapping="true">
+		<id property="vbNo" column="VB_NO" />
+		<result property="vbCount" column="vb_Count"></result>
+		<collection property="voteCateList" javaType="java.util.List" ofType="VoteCateVO" autoMapping="true">
+			<result property="vcNo" column="VC_NO"/>
+		</collection>
+	</resultMap>
+	<select id="selectVoteComplete" parameterType="int" resultMap="VoteCompleteMap">
+		with sumtb as (
+         select vb_count total , 
+         		vb_no
+            from vote_board
+            where vb_no = #{vbNo}
+         ), 
+         vcCnt as (
+            select count(vc_no) voteCount
+                   , vc_no
+              from vote_prtcp
+             where vb_no = #{vbNo}
+             group by vc_no
+              )
+      SELECT 
+            cate.VB_NO
+            , cate.vc_no
+            , cate.vc_name
+            , vcCnt.voteCount
+            , sumtb.total
+      FROM VOTE_CATE cate, vcCnt , sumtb
+      where cate.vb_no = #{vbNo}
+        and sumtb.vb_no = cate.vb_no
+        and vcCnt.vc_no = cate.vc_no
+      
+		
+	</select>
+</mapper>

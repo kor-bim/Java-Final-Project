@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.hr.member.dao.MemberDAO">
+	<sql id="searchFrag">
+		<where>
+			<if test="searchVO!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+				<choose>
+					<when test="'name'.equals(searchVO.searchType)">
+						INSTR(MEM_NAME, #{searchVO.searchWord}) > 0
+					</when>
+					<when test="'userId'.equals(searchVO.searchType)">
+						INSTR(MEM_ID, #{searchVO.searchWord}) > 0
+					</when>
+					<when test="'userDept'.equals(searchVO.searchType)">
+						INSTR(DEPT_NAME, #{searchVO.searchWord}) > 0
+					</when>
+					<when test="'userPosition'.equals(searchVO.searchType)">
+						INSTR(PS_NAME, #{searchVO.searchWord}) > 0
+					</when>
+					<when test="'userAsCode'.equals(searchVO.searchType)">
+						INSTR(AS_CODE, #{searchVO.searchWord}) > 0
+					</when>
+					<otherwise>
+						INSTR(MEM_NAME, #{searchVO.searchWord}) > 0
+						OR INSTR(MEM_ID, #{searchVO.searchWord}) > 0
+						OR INSTR(DEPT_NAME, #{searchVO.searchWord}) > 0
+						OR INSTR(PS_NAME, #{searchVO.searchWord}) > 0
+						OR INSTR(AS_CODE, #{searchVO.searchWord}) > 0
+					</otherwise>
+				</choose>
+			</if>
+		</where> 
+	</sql>
+
+	<select id="selectMemberCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		  FROM V_MEMBER_ADMIN
+		<include refid="searchFrag" />	
+	</select>
+	<select id="selectMemberList" parameterType="PagingVO" resultType="MemberVO">
+		SELECT B.*
+		FROM (
+			SELECT A.*, ROWNUM RNUM
+			FROM (
+				SELECT MEM_ID
+				     , MEM_NAME
+				     , MEM_PASS
+				     , MEM_HDATE
+				     , MEM_MAIL
+				     , MEM_COMTEL
+				     , MEM_HP
+				     , MEM_ADD
+				     , DEPT_NAME
+				     , PS_NAME
+				     , MEM_IMG 
+				     , AS_CODE
+				FROM V_MEMBER_ADMIN
+				<include refid="searchFrag" />				
+			) A
+		) B
+		<![CDATA[
+			WHERE RNUM >= #{startRow} AND RNUM <= #{endRow}
+		]]>
+	</select>
+	
+	<resultMap type="kr.or.ddit.hr.member.vo.MemberVO" id="memberMap" autoMapping="true">
+		<id property="memId" column="MEM_ID"/>
+		<collection property="roleInfoList" javaType="java.util.List" ofType="RoleInfoVO" autoMapping="true">
+			<result property="roleCode" column="ROLE_CODE"/>
+		</collection>
+		<collection property="attendanceList" javaType="java.util.List" ofType="AttendanceVO" autoMapping="true">
+			<result property="attdNo" column="ATTD_NO"/>
+		</collection>
+	</resultMap>
+	<select id="selectMember" parameterType="kr.or.ddit.hr.member.vo.MemberVO" resultMap="memberMap">
+		SELECT *
+		  FROM V_MEMBER
+		  WHERE MEM_ID = #{memId}
+	</select>
+	
+	<update id="updateMember" parameterType="kr.or.ddit.hr.member.vo.MemberVO">
+		UPDATE MEMBER
+		    <trim prefix="SET" suffixOverrides=",">
+		    	<if test="memName != null">MEM_NAME= #{memName},</if>
+		    	<if test="memPass != null and @org.apache.commons.lang3.StringUtils@isNotBlank(memPass)">MEM_PASS= #{memPass},</if>
+		    	<if test="memHdate != null">MEM_HDATE= #{memHdate},</if>
+		    	<if test="memMail != null">MEM_MAIL= #{memMail},</if>
+		    	<if test="memComtel != null">MEM_COMTEL= #{memComtel},</if>
+		    	<if test="memHp != null">MEM_HP= #{memHp},</if>
+		    	<if test="memAdd != null">MEM_ADD= #{memAdd},</if>
+		    	<if test="memBirth != null">MEM_BIRTH= #{memBirth},</if>
+		    	<if test="memEtc != null">MEM_ETC= #{memEtc},</if>
+		    	<if test="autoLogin != null">AUTO_LOGIN= #{autoLogin},</if>
+		    	<if test="idRemem != null">ID_REMEM= #{idRemem},</if>
+		    	<if test="deptCode != null">DEPT_CODE= #{deptCode},</if>
+		    	<if test="psCode != null">PS_CODE= #{psCode},</if>
+		    	<if test="jobCode != null">JOB_CODE= #{jobCode},</if>
+		    	<if test="asCode != null">AS_CODE= #{asCode},</if>
+		    	<if test="langCode != null">LANG_CODE= #{langCode},</if>
+		    	<if test="memImg != null">MEM_IMG= #{memImg},</if>
+		    	<if test="memSignImg != null">MEM_SIGN= #{memSignImg},</if>
+		    	<if test="memZip != null">MEM_ZIP= #{memZip},</if>
+		    </trim>
+		 WHERE MEM_ID = #{memId}
+	</update>
+	
+	<select id="selectMemberHp" parameterType="kr.or.ddit.hr.member.vo.MemberVO" resultMap="memberMap">
+		SELECT *
+		  FROM V_MEMBER
+		  WHERE MEM_HP= #{memHp}
+	</select>
+	
+	<update id="insertTemporaryPassword" parameterType="kr.or.ddit.hr.member.vo.MemberVO">
+		UPDATE MEMBER
+		   SET MEM_PASS = #{memPass}
+		 WHERE MEM_ID = #{memId} AND MEM_MAIL = #{memMail}
+	</update>
+	
+	<select id="selectJobList" resultType="JobVO">
+		SELECT JOB_CODE, JOB_NAME FROM JOB_CODE
+	</select>
+	
+	<insert id="insertMember" parameterType="MemberVO">
+		INSERT INTO MEMBER (										
+				  	MEM_ID,
+				    MEM_NAME,
+				    MEM_PASS,
+				    MEM_HDATE,
+				    MEM_MAIL,
+				    MEM_COMTEL,
+				    MEM_HP,
+				    MEM_ADD,
+				    MEM_BIRTH,
+				    MEM_ETC,
+				    AUTO_LOGIN,
+				    ID_REMEM,
+				    DEPT_CODE,
+				    PS_CODE,
+				    JOB_CODE,
+				    AS_CODE,
+				    APRVL_ALARM_YN,
+				    MEM_ZIP 
+			    <if test="memImg!=null">
+			    	, MEM_IMG
+			    </if>        
+			) VALUES (                                              
+				  #{memId,jdbcType=VARCHAR}
+				, #{memName,jdbcType=VARCHAR}
+				, #{memPass,jdbcType=VARCHAR}
+				, TO_DATE(#{memHdate,jdbcType=DATE}, 'YYYYMMDD')
+				, #{memMail,jdbcType=VARCHAR}
+				, #{memComtel,jdbcType=VARCHAR}
+				, #{memHp,jdbcType=VARCHAR}
+				, #{memAdd,jdbcType=VARCHAR}
+				, TO_DATE(#{memBirth,jdbcType=DATE}, 'YYYYMMDD')
+				, #{memEtc,jdbcType=VARCHAR}
+				, 'N'
+				, 'N'
+				, #{deptCode,jdbcType=VARCHAR}
+				, #{psCode,jdbcType=VARCHAR}
+				, #{jobCode,jdbcType=VARCHAR}
+				, #{asCode,jdbcType=VARCHAR}
+				, 'Y'
+				, #{memZip,jdbcType=NUMERIC}
+			    <if test="memImg!=null">
+			    	, #{memImg,jdbcType=VARCHAR}
+			    </if> 		
+			)                                                       
+	</insert>
+	
+	<insert id="insertRole" parameterType="MemberVO">
+		INSERT INTO ROLE_INFO(
+			RI_NO
+			, ROLE_CODE
+			, MEM_ID)
+		VALUES(
+			(SELECT NVL(MAX(RI_NO), 0)+1 FROM ROLE_INFO)
+			, 'ROLE_USER'
+			, #{memId})  
+	</insert>
+	
+	<update id="updateMemberPassword" parameterType="MemberVO">
+		UPDATE MEMBER
+		SET
+		MEM_PASS = #{memPass}
+		WHERE MEM_ID = #{memId}
+	</update>
+	
+</mapper>

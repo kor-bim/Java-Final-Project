@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.hr.vacation.dao.VacationWriteDAO">
+
+	<insert id="insertVacation" parameterType="VacaRecVO">
+		<selectKey keyProperty="vacaNo" resultType="string" order="BEFORE" >
+			SELECT NVL(MAX(TO_NUMBER(VACA_NO)), 0) + 1
+  			  FROM VACA_REC
+		</selectKey>
+			INSERT INTO VACA_REC (
+				VACA_NO,
+				VACA_BEGIN,
+				VACA_END,
+				VT_CODE,
+				MEM_ID,
+				AD_NO,
+				VACA_HALF
+			) VALUES (
+				#{vacaNo, jdbcType=VARCHAR},
+				#{vacaBegin, jdbcType=VARCHAR},
+				#{vacaEnd, jdbcType=VARCHAR},
+				#{vtCode, jdbcType=VARCHAR},
+				#{memId, jdbcType=VARCHAR},
+				#{approvalDocVO.adNo, jdbcType=VARCHAR},
+				'N'
+			)
+	</insert>
+	
+	<resultMap type="VacaRecVO" id="vacaRecMap" autoMapping="true">
+		<id property="memId" column="MEM_ID" />
+		<association property="approvalDocVO" autoMapping="true"></association>
+	</resultMap>
+	<select id="selectVacaRecList" parameterType="VacaRecVO" resultMap="vacaRecMap">
+		SELECT
+		    VACA_NO,
+		    VACA_BEGIN,
+		    VACA_END,
+		    VT_CODE,
+		    MEM_ID
+		FROM VACA_REC
+		WHERE MEM_ID = #{memId, jdbcType=VARCHAR}
+	</select>
+
+</mapper>

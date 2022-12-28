@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beansProjectDescription>
+	<version>1</version>
+	<pluginVersion><![CDATA[3.9.11.201912160804-RELEASE]]></pluginVersion>
+	<configSuffixes>
+		<configSuffix><![CDATA[xml]]></configSuffix>
+	</configSuffixes>
+	<enableImports><![CDATA[false]]></enableImports>
+	<configs>
+		<config>src/main/resources/kr/or/ddit/spring/context-email.xml</config>
+		<config>src/main/resources/kr/or/ddit/spring/context-aspect.xml</config>
+		<config>src/main/resources/kr/or/ddit/spring/context-common.xml</config>
+		<config>src/main/resources/kr/or/ddit/spring/context-datasource.xml</config>
+		<config>src/main/resources/kr/or/ddit/spring/context-mapper.xml</config>
+		<config>src/main/resources/kr/or/ddit/spring/context-message.xml</config>
+		<config>src/main/resources/kr/or/ddit/spring/context-security.xml</config>
+		<config>src/main/resources/kr/or/ddit/spring/context-transaction.xml</config>
+		<config>webapp/WEB-INF/spring/appServlet/KYJview-context.xml</config>
+		<config>webapp/WEB-INF/spring/appServlet/LJHview-context.xml</config>
+		<config>webapp/WEB-INF/spring/appServlet/LWJview-context.xml</config>
+		<config>webapp/WEB-INF/spring/appServlet/servlet-context.xml</config>
+		<config>webapp/WEB-INF/spring/appServlet/YHBview-context.xml</config>
+		<config>webapp/WEB-INF/spring/appServlet/SDCview-context.xml</config>
+		<config>webapp/WEB-INF/spring/appServlet/websocket-context.xml</config>
+	</configs>
+	<autoconfigs>
+	</autoconfigs>
+	<configSets>
+	</configSets>
+</beansProjectDescription>

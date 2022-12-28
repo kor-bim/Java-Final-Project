@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mail.dao.MailAttatchDAO">
+	<insert id="insertAttaches" parameterType="MailVO">
+		<selectKey order="BEFORE" keyProperty="startAttNo" resultType="int">
+			SELECT NVL(MAX(MA_NO), 0)+1
+			  FROM MAIL_ATCH
+		</selectKey>
+		INSERT ALL 
+		<foreach collection="attatchList" item="attatch" index="idx">
+			INTO MAIL_ATCH (
+			        MA_NO,
+				    MA_NAME,
+				    MA_REALNAME,
+				    MA_SIZE,
+				    MA_EXTNS,
+				    MAIL_NO,
+				    MAIL_FANCY
+			) VALUES (
+				  #{startAttNo,jdbcType=NUMERIC}+#{idx}
+				, #{attatch.maName,jdbcType=VARCHAR}
+			    , #{attatch.maRealname,jdbcType=VARCHAR}    
+			    , #{attatch.maSize,jdbcType=NUMERIC}
+			    , #{attatch.maExtns,jdbcType=VARCHAR}
+			    , #{mailNo,jdbcType=NUMERIC}
+			    , #{attatch.maFancy,jdbcType=VARCHAR}
+			)
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+	
+	<select id="selectAttach" parameterType="int" resultType="MailAttatchVO">
+		SELECT
+		    MA_NO,
+		    MA_NAME,
+		    MA_REALNAME,
+		    MA_SIZE,
+		    MA_EXTNS,
+		    MAIL_NO,
+		    MAIL_FANCY
+		FROM
+		    MAIL_ATCH
+	   WHERE
+	   		MA_NO = #{maNo}
+	</select>
+</mapper>

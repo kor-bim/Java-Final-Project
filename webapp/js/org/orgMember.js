@@ -1,0 +1,10 @@
+/**
+ * 
+ */
+
+var orgMemberClass = function()
+{
+	
+	
+		
+}

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd" >
+<tiles-definitions>
+
+<!-- 운주 수정 : 커뮤니티 left Menu -->
+	<definition name="communityLeft" extends="parent">
+		<put-attribute name="leftMenu" value="/includee/leftMenus/communityLeftMenu.jsp" />
+	</definition>
+	
+<!-- 커뮤니티 contents -->
+	<!-- 공지사항 -->
+	<definition name="noticeBoard/*" extends="communityLeft">
+		<put-attribute name="content"
+			value="/WEB-INF/views/noticeBoard/{1}.jsp" />
+	</definition>
+	
+	<!-- 투표 -->
+	<definition name="voteBoard/*" extends="communityLeft">
+		<put-attribute name="content"
+			value="/WEB-INF/views/voteBoard/{1}.jsp" />
+	</definition>
+	
+	<!-- 부서게시판 -->
+	<definition name="departMentBoard/*" extends="communityLeft">
+		<put-attribute name="content"
+			value="/WEB-INF/views/departMentBoard/{1}.jsp" />
+	</definition>
+	
+</tiles-definitions>

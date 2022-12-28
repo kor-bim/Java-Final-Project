@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.schedule.dao.ScheduleDAO">
+	
+	<select id="selectScheduleList" parameterType="ScheduleVO" resultType="ScheduleVO">
+		WITH MYCAL AS (
+		 SELECT 
+	          CAL_NO,
+	          CAL_COLOR,
+	          CAL_CODE,
+	          MEM_ID,
+	          CAL_NAME
+	        FROM CALENDAR
+	       WHERE MEM_ID = #{memId, jdbcType=VARCHAR}
+	          OR EXISTS (
+	          SELECT 
+	              SHARECALENDAR.CAL_NO
+	              ,SHARECALENDAR.MEM_ID
+	            FROM SHARECALENDAR
+	           WHERE MEM_ID = #{memId, jdbcType=VARCHAR}
+	             AND CALENDAR.CAL_NO = SHARECALENDAR.CAL_NO
+	       )
+		)
+		SELECT
+		    SCHDL_NO,
+		    SCHDL_NAME,
+		    TO_CHAR(SCHDL_BEGIN, 'YYYY-MM-DD') SCHDL_BEGIN,
+		    TO_CHAR(SCHDL_END, 'YYYY-MM-DD') SCHDL_END,
+		    SCHDL_CONTENT,
+		    A.MEM_ID,
+		    A.CAL_NO,
+		    B.CAL_CODE,
+		    B.CAL_NAME,
+		    B.CAL_COLOR
+		FROM SCHEDULE A , MYCAL B
+		WHERE A.CAL_NO = B.CAL_NO
+		ORDER BY A.SCHDL_NO
+	</select>
+	
+	<insert id="insertSchedule" parameterType="ScheduleVO">
+		<selectKey keyProperty="schdlNo" resultType="int" order="BEFORE">
+			SELECT NVL(MAX(SCHDL_NO), 0) + 1
+  			  FROM SCHEDULE
+		</selectKey>
+			INSERT INTO SCHEDULE (
+			    SCHDL_NO,
+			    SCHDL_NAME,
+			    SCHDL_BEGIN,
+			    SCHDL_END,
+			    SCHDL_CONTENT,
+			    MEM_ID,
+			    CAL_NO
+			) VALUES (
+				#{schdlNo, jdbcType=NUMERIC},
+				#{schdlName, jdbcType=VARCHAR},
+				#{schdlBegin, jdbcType=VARCHAR},
+				#{schdlEnd, jdbcType=VARCHAR},
+				#{schdlContent, jdbcType=VARCHAR},
+				#{memId, jdbcType=VARCHAR},
+				#{calNo, jdbcType=NUMERIC}
+			)
+	</insert>
+	
+	<select id="selectSchedule" parameterType="int" resultType="ScheduleVO">
+		SELECT
+		    SCHDL_NO,
+		    SCHDL_NAME,
+		    TO_CHAR(SCHDL_BEGIN, 'YYYY-MM-DD') SCHDL_BEGIN,
+		    TO_CHAR(SCHDL_END, 'YYYY-MM-DD') SCHDL_END,
+		    SCHDL_CONTENT,
+		    MEM_ID,
+		    CAL_NO
+		  FROM SCHEDULE
+		 WHERE SCHDL_NO = #{schdlNo, jdbcType=NUMERIC}
+	</select>
+	
+	<update id="updateSchedule" parameterType="ScheduleVO">
+		UPDATE SCHEDULE
+		   SET CAL_NO 		 = #{calNo, jdbcType=NUMERIC},
+		   	   SCHDL_NAME    = #{schdlName,jdbcType=VARCHAR},
+		       SCHDL_BEGIN   = #{schdlBegin,jdbcType=VARCHAR},
+		       SCHDL_END     = #{schdlEnd,jdbcType=VARCHAR},
+		       SCHDL_CONTENT = #{schdlContent,jdbcType=VARCHAR}
+		 WHERE SCHDL_NO = #{schdlNo}
+	</update>
+	
+	<delete id="deleteSchedule" parameterType="int">
+		DELETE FROM SCHEDULE
+		 WHERE SCHDL_NO = #{schdlNo, jdbcType=NUMERIC}
+	</delete>
+	
+</mapper>

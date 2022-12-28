@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.mail.dao.MailDAO">
+	<resultMap type="MailVO" id="mailWithMrVO" autoMapping="true">
+		<association property="mailReceiverVO" javaType="MailReceiverVO" autoMapping="true">
+			<result column="RNO" property="mailNo"/>
+			<result column="RID" property="receiverId"/>
+			<result column="RSTAR" property="recStar"/>
+			<result column="RIMPORT" property="recImport"/>
+			<result column="RTRASH" property="recTrash"/>
+			<result column="RREAD" property="recRead"/>
+			<result column="RDELETE" property="recDelete"/>
+		</association>
+	</resultMap>
+<!-- 	받은 메일함 -->
+	<select id="selectInboxCount" parameterType="PagingVO" resultType="int">
+		WITH MYMAIL AS(SELECT MAIL_NO FROM RECEIVER WHERE RECEIVER_ID = #{userId} AND REC_TRASH = 'N' AND REC_DELETE = 'N')
+			SELECT COUNT(MAIL.MAIL_NO)
+			  FROM MAIL INNER JOIN MYMAIL ON ( MAIL.MAIL_NO = MYMAIL.MAIL_NO )
+	</select>
+	<select id="selectInboxList" parameterType="PagingVO" resultMap="mailWithMrVO">
+		SELECT B.*
+			  FROM (
+			       SELECT ROWNUM RNUM, A.*
+			       FROM(
+			       		WITH MYMAIL AS(
+			       				 SELECT MAIL_NO, RECEIVER_ID, REC_STAR, REC_IMPORT, REC_TRASH, REC_READ, REC_DELETE FROM RECEIVER WHERE RECEIVER_ID = #{userId} AND REC_TRASH = 'N' AND REC_DELETE = 'N')
+							SELECT MAIL.MAIL_NO
+								 , MAIL_TITLE
+								 , MAIL_DATE
+								 , MAIL_CONTENT
+								 , MAIL_STAR
+								 , MAIL_IMPORT
+								 , MAIL_TRASH
+								 , SENDER_ID
+								 , MAIL_READ
+                                 , MYMAIL.MAIL_NO AS RNO
+						  	     , MYMAIL.RECEIVER_ID AS RID
+							     , MYMAIL.REC_STAR AS RSTAR
+							     , MYMAIL.REC_IMPORT AS RIMPORT
+							     , MYMAIL.REC_TRASH AS RTRASH
+							     , MYMAIL.REC_READ AS RREAD
+							     , MYMAIL.REC_DELETE AS RDELETE
+							FROM MAIL INNER JOIN MYMAIL ON ( MAIL.MAIL_NO = MYMAIL.MAIL_NO )
+						   ORDER BY MAIL_DATE DESC
+			       ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}	       
+	</select>
+	
+	
+<!-- 	보낸 메일함 -->
+	<select id="selectSentBoxCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(MAIL_NO)
+		  FROM MAIL
+		 WHERE SENDER_ID = #{userId}
+		   AND MAIL_TRASH = 'N'
+		   AND MAIL_DELETE = 'N'
+	</select>
+	<select id="selectSentBoxList" parameterType="PagingVO" resultType="MailVO">
+		SELECT B.*
+			  FROM (
+			       SELECT ROWNUM RNUM, A.*
+			       FROM(
+			       		SELECT	MAIL_NO,
+								MAIL_TITLE,
+								MAIL_DATE,
+								MAIL_CONTENT,
+								MAIL_STAR,
+								MAIL_IMPORT,
+								MAIL_TRASH,
+								SENDER_ID,
+								MAIL_READ,
+								MAIL_DELETE
+						 FROM   MAIL
+						WHERE SENDER_ID = #{userId}
+		   				  AND MAIL_TRASH = 'N'
+		   				  AND MAIL_DELETE = 'N'
+		   				  ORDER BY MAIL_DATE DESC 
+			       ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}	       
+	</select>
+	
+	
+<!-- 	별표 표시 메일함 -->
+	<select id="selectStarredCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+  		  FROM(
+	       	WITH MYMAIL AS (
+	                        SELECT MAIL_NO
+	                        FROM RECEIVER WHERE RECEIVER_ID = #{userId} AND REC_STAR = 'Y' AND REC_TRASH = 'N' AND REC_DELETE = 'N'
+	                    )
+	            SELECT MAIL.MAIL_NO             
+	            FROM MAIL MAIL INNER JOIN MYMAIL ON (MAIL.MAIL_NO = MYMAIL.MAIL_NO)
+	            UNION ALL
+	            SELECT	                  
+	                MAIL.MAIL_NO
+	            FROM  MAIL MAIL
+	            WHERE SENDER_ID = #{userId} AND MAIL_STAR = 'Y' AND MAIL_TRASH = 'N' AND MAIL_DELETE = 'N'
+	    ) A							
+		
+	</select>
+	<select id="selectStarredList" parameterType="PagingVO" resultMap="mailWithMrVO">
+		SELECT B.*
+			  FROM (
+			  SELECT ROWNUM RNUM, A.*
+			       FROM(
+			  			WITH MYMAIL AS (
+									    SELECT MAIL_NO, RECEIVER_ID, REC_STAR, REC_IMPORT, REC_TRASH, REC_READ, REC_DELETE
+									    FROM RECEIVER WHERE RECEIVER_ID = #{userId} AND REC_STAR = 'Y' AND REC_TRASH = 'N' AND REC_DELETE = 'N'
+									)
+							SELECT MAIL.MAIL_NO
+							    , MAIL_TITLE
+							    , MAIL_DATE
+							    , MAIL_CONTENT
+							    , MAIL_STAR
+							    , MAIL_IMPORT
+							    , MAIL_TRASH
+							    , MAIL_READ
+							    , MAIL.SENDER_ID
+							    , MAIL_DELETE
+							    , MYMAIL.MAIL_NO AS RNO
+							    , MYMAIL.RECEIVER_ID AS RID
+							    , MYMAIL.REC_STAR AS RSTAR
+							    , MYMAIL.REC_IMPORT AS RIMPORT
+							    , MYMAIL.REC_TRASH AS RTRASH
+							    , MYMAIL.REC_READ AS RREAD
+							    , MYMAIL.REC_DELETE AS RDELETE
+							FROM MAIL MAIL INNER JOIN MYMAIL ON (MAIL.MAIL_NO = MYMAIL.MAIL_NO)
+							UNION ALL
+							SELECT	                  
+							    MAIL.MAIL_NO
+							  , MAIL_TITLE
+							  , MAIL_DATE
+							  , MAIL_CONTENT
+							  , MAIL_STAR
+							  , MAIL_IMPORT
+							  , MAIL_TRASH
+							  , MAIL_READ
+							  , MAIL.SENDER_ID
+							  , MAIL_DELETE
+							  , RECEIVER.MAIL_NO AS RNO
+							  , RECEIVER.RECEIVER_ID AS RID
+						      , RECEIVER.REC_STAR AS RSTAR
+						      , RECEIVER.REC_IMPORT AS RIMPORT
+						      , RECEIVER.REC_TRASH AS RTRASH
+						      , RECEIVER.REC_READ AS RREAD
+						      , RECEIVER.REC_DELETE AS RDELETE
+							FROM  MAIL MAIL INNER JOIN RECEIVER ON (MAIL.MAIL_NO = RECEIVER.MAIL_NO)
+							WHERE SENDER_ID = #{userId} AND MAIL_STAR = 'Y' AND MAIL_TRASH = 'N' AND MAIL_DELETE = 'N' AND MAIL.SENDER_ID != RECEIVER.RECEIVER_ID
+							ORDER BY MAIL_DATE DESC
+			       ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}	       
+	</select>
+	
+<!-- 	중요 메일함 -->
+	<select id="selectImportantCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+  		  FROM(
+	       	WITH MYMAIL AS (
+	                        SELECT MAIL_NO
+	                        FROM RECEIVER WHERE RECEIVER_ID = #{userId} AND REC_IMPORT = 'Y' AND REC_TRASH = 'N' AND REC_DELETE = 'N'
+	                    )
+	            SELECT MAIL.MAIL_NO             
+	            FROM MAIL MAIL INNER JOIN MYMAIL ON (MAIL.MAIL_NO = MYMAIL.MAIL_NO)
+	            UNION ALL
+	            SELECT	                  
+	                MAIL.MAIL_NO
+	            FROM  MAIL MAIL
+	            WHERE SENDER_ID = #{userId} AND MAIL_IMPORT = 'Y' AND MAIL_TRASH = 'N' AND MAIL_DELETE = 'N'
+	    ) A				
+		
+	</select>
+	<select id="selectImportantList" parameterType="PagingVO" resultMap="mailWithMrVO">
+		SELECT B.*
+			  FROM (
+			  SELECT ROWNUM RNUM, A.*
+			       FROM(
+			  			WITH MYMAIL AS (
+									    SELECT MAIL_NO, RECEIVER_ID, REC_STAR, REC_IMPORT, REC_TRASH, REC_READ, REC_DELETE
+									    FROM RECEIVER WHERE RECEIVER_ID = #{userId} AND REC_IMPORT = 'Y' AND REC_TRASH = 'N' AND REC_DELETE = 'N'
+									)
+							SELECT MAIL.MAIL_NO
+							    , MAIL_TITLE
+							    , MAIL_DATE
+							    , MAIL_CONTENT
+							    , MAIL_STAR
+							    , MAIL_IMPORT
+							    , MAIL_TRASH
+							    , MAIL_READ
+							    , MAIL.SENDER_ID
+							    , MAIL_DELETE
+							    , MYMAIL.MAIL_NO AS RNO
+							    , MYMAIL.RECEIVER_ID AS RID
+							    , MYMAIL.REC_STAR AS RSTAR
+							    , MYMAIL.REC_IMPORT AS RIMPORT
+							    , MYMAIL.REC_TRASH AS RTRASH
+							    , MYMAIL.REC_READ AS RREAD
+							    , MYMAIL.REC_DELETE AS RDELETE
+							FROM MAIL MAIL INNER JOIN MYMAIL ON (MAIL.MAIL_NO = MYMAIL.MAIL_NO)
+							UNION ALL
+							SELECT	                  
+							    MAIL.MAIL_NO
+							  , MAIL_TITLE
+							  , MAIL_DATE
+							  , MAIL_CONTENT
+							  , MAIL_STAR
+							  , MAIL_IMPORT
+							  , MAIL_TRASH
+							  , MAIL_READ
+							  , MAIL.SENDER_ID
+							  , MAIL_DELETE
+							  , RECEIVER.MAIL_NO AS RNO
+							  , RECEIVER.RECEIVER_ID AS RID
+						      , RECEIVER.REC_STAR AS RSTAR
+						      , RECEIVER.REC_IMPORT AS RIMPORT
+						      , RECEIVER.REC_TRASH AS RTRASH
+						      , RECEIVER.REC_READ AS RREAD
+						      , RECEIVER.REC_DELETE AS RDELETE
+							FROM  MAIL MAIL INNER JOIN RECEIVER ON (MAIL.MAIL_NO = RECEIVER.MAIL_NO)
+							WHERE SENDER_ID = #{userId} AND MAIL_IMPORT = 'Y' AND MAIL_TRASH = 'N' AND MAIL_DELETE = 'N' AND MAIL.SENDER_ID != RECEIVER.RECEIVER_ID
+							ORDER BY MAIL_DATE DESC
+			       ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}	
+	</select>
+<!-- 	삭제된 메일함 -->
+	<select id="selectTrashCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+  		  FROM(
+	       	WITH MYMAIL AS (
+	                        SELECT MAIL_NO
+	                        FROM RECEIVER WHERE RECEIVER_ID = #{userId} AND REC_TRASH = 'Y' AND REC_DELETE = 'N'
+	                    )
+	            SELECT MAIL.MAIL_NO             
+	            FROM MAIL MAIL INNER JOIN MYMAIL ON (MAIL.MAIL_NO = MYMAIL.MAIL_NO)
+	            UNION ALL
+	            SELECT	                  
+	                MAIL.MAIL_NO
+	            FROM  MAIL MAIL
+	            WHERE SENDER_ID = #{userId} AND MAIL_TRASH = 'Y' AND MAIL_DELETE = 'N'
+	    ) A		
+	</select>
+	<select id="selectTrashList" parameterType="PagingVO" resultMap="mailWithMrVO">
+		SELECT B.*
+			  FROM (
+			  SELECT ROWNUM RNUM, A.*
+			       FROM(
+			  			WITH MYMAIL AS (
+									    SELECT MAIL_NO, RECEIVER_ID, REC_STAR, REC_IMPORT, REC_TRASH, REC_READ, REC_DELETE
+									    FROM RECEIVER WHERE RECEIVER_ID = #{userId} AND REC_TRASH = 'Y' AND REC_DELETE = 'N'
+									)
+							SELECT MAIL.MAIL_NO
+							    , MAIL_TITLE
+							    , MAIL_DATE
+							    , MAIL_CONTENT
+							    , MAIL_STAR
+							    , MAIL_IMPORT
+							    , MAIL_TRASH
+							    , MAIL_READ
+							    , MAIL.SENDER_ID
+							    , MAIL_DELETE
+							    , MYMAIL.MAIL_NO AS RNO
+							    , MYMAIL.RECEIVER_ID AS RID
+							    , MYMAIL.REC_STAR AS RSTAR
+							    , MYMAIL.REC_IMPORT AS RIMPORT
+							    , MYMAIL.REC_TRASH AS RTRASH
+							    , MYMAIL.REC_READ AS RREAD
+							    , MYMAIL.REC_DELETE AS RDELETE
+							FROM MAIL MAIL INNER JOIN MYMAIL ON (MAIL.MAIL_NO = MYMAIL.MAIL_NO)
+							UNION ALL
+							SELECT	                  
+							    MAIL.MAIL_NO
+							  , MAIL_TITLE
+							  , MAIL_DATE
+							  , MAIL_CONTENT
+							  , MAIL_STAR
+							  , MAIL_IMPORT
+							  , MAIL_TRASH
+							  , MAIL_READ
+							  , MAIL.SENDER_ID
+							  , MAIL_DELETE
+							  , RECEIVER.MAIL_NO AS RNO
+							  , RECEIVER.RECEIVER_ID AS RID
+						      , RECEIVER.REC_STAR AS RSTAR
+						      , RECEIVER.REC_IMPORT AS RIMPORT
+						      , RECEIVER.REC_TRASH AS RTRASH
+						      , RECEIVER.REC_READ AS RREAD
+						      , RECEIVER.REC_DELETE AS RDELETE
+							FROM  MAIL MAIL INNER JOIN RECEIVER ON (MAIL.MAIL_NO = RECEIVER.MAIL_NO)
+							WHERE SENDER_ID = #{userId} AND MAIL_TRASH = 'Y' AND MAIL_DELETE = 'N' AND MAIL.SENDER_ID != RECEIVER.RECEIVER_ID
+							ORDER BY MAIL_DATE DESC
+			       ) A ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}	   
+	</select>
+	
+	<resultMap type="MailVO" id="mailMap" autoMapping="true">
+		<id property="mailNo" column="MAIL_NO"/>
+		<collection property="mailReceiverList" ofType="MailReceiverVO" autoMapping="true">
+			<id property="mailNo" column="MAILR_NO"/>
+			<id property="receiverId" column="MEMR_ID"/>
+			<id property="memName" column="MEMR_NAME"/>
+			<id property="memImg" column="MEMR_IMG"/>
+			<id property="recStar" column="REC_STAR"/>
+			<id property="recImport" column="REC_IMPORT"/>
+			<id property="recRead" column="REC_READ"/>
+			<id property="recTrash" column="REC_TRASH"/>
+			<id property="recDelete" column="REC_DELETE"/>
+		</collection>
+		<collection property="attatchList" ofType="MailAttatchVO" autoMapping="true">
+			<id property="maNo" column="MA_NO"/>
+		</collection>
+	</resultMap>
+	<select id="selectMail" parameterType="MailVO" resultMap="mailMap">
+		SELECT  MAIL.MAIL_NO,
+                MAIL_TITLE,
+                MAIL_DATE,
+                MAIL_CONTENT,
+                MAIL_STAR,
+                MAIL_IMPORT,
+                MAIL_TRASH,
+                SENDER_ID,
+                MEMBER.MEM_NAME,
+                MEMBER.MEM_IMG,
+                MAIL_READ,
+                RECEIVER.MAIL_NO AS MAILR_NO,
+                RECEIVER.RECEIVER_ID AS MEMR_ID,
+                MEMR.MEM_NAME AS MEMR_NAME,
+                MEMR.MEM_IMG AS MEMR_IMG,
+                RECEIVER.REC_STAR AS REC_STAR,
+                RECEIVER.REC_IMPORT AS REC_IMPORT,
+                RECEIVER.REC_READ AS REC_READ,
+                RECEIVER.REC_TRASH AS REC_TRASH,
+                RECEIVER.REC_DELETE AS REC_DELETE,
+                MAIL_ATCH.MA_NO,
+                MAIL_ATCH.MA_NAME,
+                MAIL_ATCH.MA_REALNAME,
+                MAIL_ATCH.MA_SIZE,
+                MAIL_ATCH.MA_EXTNS,
+                MAIL_ATCH.MAIL_FANCY
+		   FROM MAIL LEFT OUTER JOIN RECEIVER ON ( MAIL.MAIL_NO = RECEIVER.MAIL_NO)
+			                    LEFT OUTER JOIN MAIL_ATCH ON (MAIL.MAIL_NO = MAIL_ATCH.MAIL_NO)
+			                    LEFT OUTER JOIN MEMBER ON ( MAIL.SENDER_ID = MEMBER.MEM_ID)
+			                    LEFT OUTER JOIN MEMBER  MEMR ON(MEMR.MEM_ID = RECEIVER.RECEIVER_ID)
+		  WHERE MAIL.MAIL_NO = #{mailNo}
+	</select>
+	
+	<update id="updateReceiverBookmark" parameterType="MailReceiverVO">
+		UPDATE RECEIVER
+		SET REC_IMPORT = #{recImport}
+		WHERE MAIL_NO = #{mailNo}
+		AND RECEIVER_ID = #{receiverId}
+	</update>
+	<update id="updateSenderBookmark" parameterType="MailVO">
+		UPDATE MAIL
+		SET MAIL_IMPORT = #{mailImport}
+		WHERE MAIL_NO = #{mailNo}
+		AND SENDER_ID = #{senderId}
+	</update>
+	
+	<update id="updateReceiverStarred" parameterType="MailReceiverVO">
+		UPDATE RECEIVER
+		SET REC_STAR = #{recStar}
+		WHERE MAIL_NO = #{mailNo}
+		AND RECEIVER_ID = #{receiverId}
+	</update>
+	<update id="updateSenderStarred" parameterType="MailVO">
+		UPDATE MAIL
+		SET MAIL_STAR = #{mailStar}
+		WHERE MAIL_NO = #{mailNo}
+		AND SENDER_ID = #{senderId}
+	</update>
+	
+	<insert id="insertMail" parameterType="MailVO">
+		<selectKey order="BEFORE" keyProperty="mailNo" resultType="int">
+			SELECT NVL(MAX(MAIL_NO), 0)+1
+			  FROM MAIL
+		</selectKey>
+		INSERT INTO MAIL (
+		    MAIL_NO,
+		    MAIL_TITLE,
+		    MAIL_DATE,
+		    MAIL_CONTENT,
+		    MAIL_STAR,
+		    MAIL_IMPORT,
+		    MAIL_TRASH,
+		    MAIL_READ,
+		    SENDER_ID,
+		    MAIL_DELETE
+		) VALUES (
+		    #{mailNo},
+		    #{mailTitle},
+		    SYSDATE,
+		    #{mailContent},
+		    'N',
+		    'N',
+		    'N',
+		    'N',
+		    #{senderId},
+		    'N'
+		)
+	</insert>
+	
+	<insert id="insertReceiver" parameterType="MailVO">	
+		INSERT ALL
+		<foreach collection="mailReceiverList" item="receiver" index="idx">
+			INTO RECEIVER (
+			  	MAIL_NO,
+			    RECEIVER_ID,
+			    REC_STAR,
+			    REC_IMPORT,
+			    REC_TRASH,
+			    REC_READ,
+			    REC_DELETE
+			) VALUES (
+				#{mailNo}
+				, #{receiver.receiverId}
+				, 'N'
+				, 'N'
+				, 'N'
+				, 'N'
+				, 'N'
+			)
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+	
+		
+	<update id="updateSenderTrash" parameterType="MailVO">
+		UPDATE MAIL SET
+			MAIL_TRASH = 'Y'
+		WHERE MAIL_NO = #{mailNo}
+		 AND SENDER_ID = #{senderId}
+	</update>
+	<update id="updateReceiverTrash" parameterType="MailReceiverVO">
+		UPDATE RECEIVER SET
+			REC_TRASH = 'Y'
+		WHERE MAIL_NO = #{mailNo}
+		AND RECEIVER_ID = #{receiverId}
+	</update>
+	
+	<update id="updateSenderRead" parameterType="MailVO">
+		UPDATE MAIL SET
+			MAIL_READ = 'Y'
+		WHERE MAIL_NO = #{mailNo}
+		 AND SENDER_ID = #{senderId}
+	</update>
+	<update id="updateReceiverRead" parameterType="MailReceiverVO">
+		UPDATE RECEIVER SET
+			REC_READ = 'Y'
+		WHERE MAIL_NO = #{mailNo}
+		AND RECEIVER_ID = #{receiverId}
+	</update>
+	
+	<update id="deleteSenderMail" parameterType="MailVO">
+		UPDATE MAIL SET
+			MAIL_DELETE = 'Y'
+		WHERE MAIL_NO = #{mailNo}
+		 AND SENDER_ID = #{senderId}
+	</update>
+	<update id="deleteReceiverMail" parameterType="MailReceiverVO">
+		UPDATE RECEIVER SET
+			REC_DELETE = 'Y'
+		WHERE MAIL_NO = #{mailNo}
+		AND RECEIVER_ID = #{receiverId}
+	</update>
+	
+	<update id="restoreSenderMail" parameterType="MailVO">
+		UPDATE MAIL SET
+			MAIL_TRASH = 'N'
+		WHERE MAIL_NO = #{mailNo}
+		 AND SENDER_ID = #{senderId}
+	</update>
+	<update id="restoreReceiverMail" parameterType="MailReceiverVO">
+		UPDATE RECEIVER SET
+			REC_TRASH = 'N'
+		WHERE MAIL_NO = #{mailNo}
+		AND RECEIVER_ID = #{receiverId}
+	</update>
+	
+	<update id="senderMailsToTrash" parameterType="MailVO">
+		UPDATE MAIL SET
+			MAIL_TRASH = 'Y'
+		WHERE MAIL_NO = #{mailNo}
+		 AND SENDER_ID = #{senderId}
+	</update>
+	<update id="receiverMailsToTrash" parameterType="MailReceiverVO">
+		UPDATE RECEIVER SET
+			REC_TRASH = 'Y'
+		WHERE MAIL_NO = #{mailNo}
+		AND RECEIVER_ID = #{receiverId}
+	</update>
+	
+</mapper>

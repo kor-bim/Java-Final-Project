@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.board.dao.DepartMentBoardAttatchDAO">
+	<insert id="insertAttaches" parameterType="DepartMentBoardVO">
+		<selectKey order="BEFORE" keyProperty="startAttNo" resultType="int">
+			SELECT NVL(MAX(DBA_NO), 0)+1
+			  FROM DB_ATCH
+		</selectKey>
+		INSERT ALL 
+	<foreach collection="attatchList" item="attatch" index="idx">
+			INTO DB_ATCH (
+			     DBA_NO
+			   , DBA_NAME
+			   , DBA_REALNAME
+			   , DBA_EXTNS
+			   , DB_NO
+			   , DBA_SIZE
+			   , DBA_FANCY
+			) VALUES (
+				  #{startAttNo,jdbcType=NUMERIC}+#{idx}
+				, #{attatch.dbaName,jdbcType=VARCHAR}
+			    , #{attatch.dbaRealname,jdbcType=VARCHAR}    
+			    , #{attatch.dbaExtns,jdbcType=VARCHAR}
+			    , #{dbNo,jdbcType=NUMERIC}
+			    , #{attatch.dbaSize,jdbcType=NUMERIC}
+			    , #{attatch.dbaFancy,jdbcType=VARCHAR}
+			)
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+	
+	<delete id="deleteAttatches" parameterType="DepartMentBoardVO">
+		DELETE FROM DB_ATCH
+		<where>
+			<if test="delAttNos!=null and delAttNos.length gt 0">
+				DBA_NO IN 
+				<foreach collection="delAttNos" item="attNo" open="(" close=")" separator=",">
+					#{attNo}
+				</foreach>	
+			</if>
+			<if test="delAttNos==null or delAttNos.length eq 0">
+				DB_NO = #{dbNo}
+			</if>
+		</where>
+	</delete>
+	
+	<select id="selectAttach" parameterType="int" resultType="DepartMentBoardAttatchVO">
+		SELECT
+			    DBA_NO,
+			    DBA_NAME,
+			    DBA_REALNAME,
+			    DBA_SIZE,
+			    DBA_EXTNS,
+			    DB_NO,
+			    DBA_FANCY
+		FROM
+		    	DB_ATCH
+		WHERE	DBA_NO = #{dbaNo}
+	</select>
+
+</mapper>

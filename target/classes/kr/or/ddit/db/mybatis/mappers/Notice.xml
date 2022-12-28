@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.board.dao.NoticeBoardDAO">
+
+	<select id="selectNoticeBoardList" resultType="kr.or.ddit.board.vo.NoticeVO">
+		WITH NOTICEWRITER AS(
+			 SELECT MEM_ID ID ,
+				    MEM_NAME NAME
+			   FROM MEMBER)
+			   
+		SELECT B.*
+			FROM (
+				SELECT ROWNUM RNUM, A.*
+				  FROM (
+						SELECT
+						NB_NO,
+						NB_TITLE,
+						NB_CONTENT,
+						TO_CHAR(NB_DATE, 'YYYY-MM-DD') NB_DATE,
+						NOTICEWRITER.NAME AS MEM_ID
+						FROM NOTI_BOARD
+						LEFT OUTER JOIN NOTICEWRITER ON (NOTI_BOARD.MEM_ID=NOTICEWRITER.ID)
+					) A
+		)B
+	</select>
+	
+	<resultMap type="kr.or.ddit.board.vo.NoticeVO" id="NoticeBoardMap" autoMapping="true">
+		<id property="nbNo" column="NboardNo"/>
+		<association property="memberVO" javaType="kr.or.ddit.hr.member.vo.MemberVO" autoMapping="true" />
+		<collection property="nbAttatchList" ofType="NBAttatchVO" autoMapping="true">
+			<id property="nbaNo" column="NBA_NO"/>
+			<id property="nbaName" column="NBA_NAME"/>
+		</collection>
+<!-- 		<collection property="replyList" ofType="ReplyVO" autoMapping="true"> -->
+<!-- 			<id property="rep_no" column="REP_NO"/> -->
+<!-- 		</collection> -->
+	</resultMap>
+	<select id="selectNoticeBoard" parameterType="kr.or.ddit.board.vo.NoticeVO" resultMap="NoticeBoardMap">
+		SELECT
+		    A.nb_no AS NboardNo,
+		    A.nb_title,
+		    A.nb_content,
+		    TO_CHAR(A.NB_DATE, 'YYYY-MM-DD') NB_DATE,
+		    C.mem_name,
+		    B.nba_no,
+		    B.nba_name,
+		    B.nba_realname,
+		    B.nba_size,
+		    B.nba_extns
+		FROM
+		    noti_board A LEFT OUTER JOIN nb_atch B ON (A.nb_no = b.nb_no) 
+		                 LEFT OUTER JOIN member C ON (A.MEM_ID = C.MEM_ID)
+		WHERE 
+			A.nb_no = #{nbNo}
+	</select>
+	<insert id="insertNoticeBoard" parameterType="kr.or.ddit.board.vo.NoticeVO">
+		<selectKey order="BEFORE" keyProperty="nbNo" resultType="int">
+			SELECT NVL(MAX(NB_NO), 0) + 1
+			FROM NOTI_BOARD
+		</selectKey>
+		INSERT INTO NOTI_BOARD (
+		   	NB_NO,
+			NB_TITLE,
+			NB_CONTENT,
+			NB_DATE,
+			MEM_ID,
+			NB_DEL_YN
+		) VALUES (
+		  	#{nbNo,jdbcType=NUMERIC},
+		  	#{nbTitle,jdbcType=VARCHAR},
+		  	#{nbContent,jdbcType=VARCHAR},    
+		  	SYSDATE,
+		  	#{memId,jdbcType=VARCHAR},
+		  	'N'
+		)
+	</insert>
+	<update id="updateNoticeBoard" parameterType="NoticeVO">
+		UPDATE NOTI_BOARD
+		SET
+			NB_TITLE = #{nbTitle,jdbcType=VARCHAR},
+			NB_CONTENT = #{nbContent,jdbcType=VARCHAR}
+		WHERE NB_NO = #{nbNo}
+	</update>
+	
+<!-- 	<select id="noticeDetailBoard" parameterType="int" resultMap="noticeboardMap"> -->
+<!-- 		SELECT -->
+<!--    			NB_NO,    NB_TITLE,    NB_CONTENT, -->
+<!-- 		    NB_DATE,    A.MEM_ID, -->
+<!-- 		    ,   MEM_ID, MEM_NAME -->
+<!-- 		FROM    NOTI_BOARD A LEFT OUTER JOIN MEMBER B ON (A.MEM_ID = B.MEM_ID) -->
+<!-- 		WHERE A.BO_NO = #{bo_no} -->
+<!-- 	</select> -->
+	
+	<delete id="deleteNoticeBoard" parameterType="int">
+		DELETE FROM NOTI_BOARD
+		 WHERE NB_NO = #{nbNo}
+	</delete>
+	
+	
+</mapper>

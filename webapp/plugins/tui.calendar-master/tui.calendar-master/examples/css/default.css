@@ -1,0 +1,152 @@
+@import url(https://fonts.googleapis.com/css?family=Noto+Sans);
+
+body {
+  font-family: 'Noto Sans', sans-serif;
+  font-size: 12px;
+}
+
+/**  custom bootstrap - start */
+.btn {
+  border-radius: 25px;
+  border-color: #ddd;
+}
+
+.btn:hover {
+  border: solid 1px #bbb;
+  background-color: #fff;
+}
+
+.btn:active {
+  background-color: #f9f9f9;
+  border: solid 1px #bbb;
+  outline: none;
+}
+
+.btn:disabled {
+  background-color: #f9f9f9;
+  border: solid 1px #ddd;
+  color: #bbb;
+}
+
+.btn:focus:active, .btn:focus, .btn:active {
+  outline: none;
+}
+
+.open > .dropdown-toggle.btn-default {
+  background-color: #fff;
+}
+
+.dropdown-menu {
+  border: 1px solid #bbb;
+}
+
+.dropdown-menu > li > a {
+  cursor: pointer;
+}
+
+.dropdown-menu > li > a:hover {
+  background-color: rgba(81, 92, 230, 0.05);
+  color: #333;
+}
+
+.bi15 {
+  width: 15px;
+  height: 15px;
+}
+/** custom fontawesome - end */
+
+.calendar-icon {
+  width: 14px;
+  height: 14px;
+}
+
+#top {
+  border-bottom: 1px solid #bbb;
+  font-size: 10px;
+}
+
+#lnb {
+  border-right: 1px solid #d5d5d5;
+  background: #fafafa;
+}
+
+#lnb label {
+  cursor: pointer;
+}
+
+.lnb-new-schedule-btn {
+  font-size: 14px;
+  background-color: #ff6618;
+  color: #ffffff;
+  border: 0;
+  border-radius: 25px;
+  font-weight: bold;
+}
+
+.lnb-new-schedule-btn:hover {
+  font-size: 14px;
+  background-color: #e55b15;
+  color: #ffffff;
+  border-radius: 25px;
+  font-weight: bold;
+}
+
+.lnb-new-schedule-btn:active {
+  font-size: 14px;
+  background-color: #d95614;
+  color: #ffffff;
+  border: 0;
+  border-radius: 25px;
+  font-weight: bold;
+}
+
+.lnb-calendars > div {
+  border-bottom: 1px solid #e5e5e5;
+  font-weight: normal;
+}
+
+.lnb-calendars-d1 label {
+  font-weight: normal;
+}
+
+.lnb-footer {
+  color: #999;
+  font-size: 11px;
+}
+
+#calendarTypeName {
+  text-align: left;
+}
+
+.move-day {
+  font-size: 0;
+}
+
+#renderRange {
+  font-size: 19px;
+  vertical-align: middle;
+}
+
+.calendar-bar {
+  border: 1px solid #eee;
+  vertical-align: middle;
+}
+
+.calendar-name {
+    font-size: 14px;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+.schedule-time {
+    color: #005aff;
+}
+
+
+.weekday-grid-more-schedules {
+  border-radius: 3px;
+  border: 1px solid #ddd;
+  font-size: 12px;
+  text-align: center;
+  color: #000;
+}

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.hr.vacation.dao.VacaTypeDAO">
+
+	<select id="selectVacaTypeList" resultType="VacaTypeVO">
+		SELECT TO_NUMBER(VT_CODE) VT_CODE
+		       , VT_NAME
+		       , VT_DDCT 
+		  FROM VACA_TYPE
+		 WHERE VT_USE_YN = 'Y'
+		 ORDER BY VT_CODE
+	</select>
+	
+	<insert id="insertVacaType" parameterType="VacaTypeVO">
+		
+		MERGE INTO VACA_TYPE A 
+			USING (
+				<if test='!("".equals(vtCode) and "".equals(vtName))'>
+					SELECT 
+							#{vtCode}                     AS CODE
+							, #{vtName,jdbcType=VARCHAR}  AS NAME
+							, #{vtDdct}  AS DDCT
+					 FROM SYS.DUAL 
+				</if>
+			) B ON (A.VT_CODE = B.CODE)
+			WHEN MATCHED THEN 
+				UPDATE SET
+					VT_DDCT = B.DDCT
+			WHEN NOT MATCHED THEN
+				INSERT (VT_CODE, VT_NAME, VT_DDCT, VT_USE_YN)
+				VALUES ((SELECT MAX(NVL(TO_NUMBER(VT_CODE),0)+1)
+					  FROM VACA_TYPE) , B.NAME, B.DDCT, 'Y')
+	</insert>
+	
+<!-- 	<insert id="insertVacaType" parameterType="VacaTypeVO" > -->
+<!-- 		<foreach collection="vacatypeList" item="vacatype"> -->
+<!-- 			begin proc_vacatype( -->
+<!-- 				#{vacatype.vtCode, jdbcType=VARCHAR} -->
+<!-- 				, #{vacatype.vtName, jdbcType=VARCHAR} -->
+<!-- 				, #{vacatype.vtDdct, jdbcType=CHAR}); end; -->
+<!-- 			declare -->
+<!-- 				v_obj vacatype := (#{vacatype.vtCode, jdbcType=VARCHAR}  -->
+<!-- 									, #{vacatype.vtName, jdbcType=VARCHAR} -->
+<!-- 					 				, #{vacatype.vtDdct, jdbcType=CHAR}); -->
+<!-- 				v_table tb_vt := v_table(v_obj); -->
+<!-- 			begin -->
+<!-- 				exec proc_vacatype(tb_vt); -->
+<!-- 			end; -->
+<!-- 		</foreach> -->
+<!-- 	</insert> -->
+	
+	
+
+	<update id="deleteVacaType" parameterType="VacaTypeVO">
+		UPDATE VACA_TYPE
+		   SET VT_USE_YN = 'N'
+		 WHERE VT_CODE = #{vtCode}
+	</update>
+
+		
+
+
+
+
+
+
+</mapper>

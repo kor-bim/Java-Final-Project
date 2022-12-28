@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.hr.work.dao.WorkUserDAO">
+
+	<insert id="insertStartWork" parameterType="AttendanceVO">
+		<selectKey order="BEFORE" keyProperty="attdNo" resultType="int">
+			SELECT NVL(MAX(ATTD_NO), 0)+1
+			  FROM ATTENDANCE
+		</selectKey>
+		INSERT INTO ATTENDANCE (
+		    ATTD_NO,
+		    ATTD_DATE,
+		    ATTD_STARTH,
+		    ATTD_STARTM,
+		    WS_CODE,
+		    MEM_ID
+		) VALUES (
+		    #{attdNo},
+		    #{attdDate},
+		    #{attdStarth},
+		    #{attdStartm},
+		    '1', 
+		    #{memId}
+		)
+	</insert>
+	
+	<update id="upateEndWork" parameterType="AttendanceVO">
+		UPDATE ATTENDANCE 
+			SET 
+				ATTD_ENDH = #{attdEndh},
+				ATTD_ENDM = #{attdEndm},
+				WS_CODE = '2'
+		WHERE MEM_ID = #{memId}
+		  AND ATTD_DATE = #{attdDate}
+	</update>
+	
+	<select id="selectEndWork" parameterType="AttendanceVO" resultType="AttendanceVO">
+		SELECT
+		    ATTD_NO, 
+		    ATTD_DATE,
+		    ATTD_STARTH,
+		    ATTD_STARTM,
+		    ATTD_ENDH,
+		    ATTD_ENDM,
+		    WS_CODE,
+		    MEM_ID
+		FROM
+		    ATTENDANCE
+		WHERE MEM_ID = #{memId}
+		AND WS_CODE = '2'
+		AND ATTD_DATE = #{attdDate}
+	</select>
+	
+	<update id="updateWorkState" parameterType="AttendanceVO">
+		UPDATE ATTENDANCE 
+			SET 
+				WS_CODE = #{wsCode}
+		WHERE MEM_ID = #{memId}
+		  AND ATTD_DATE = #{attdDate}
+	</update>
+	
+	<select id="selectTodayWorkInfo" parameterType="AttendanceVO" resultType="AttendanceVO">
+		SELECT
+		    ATTD_NO, 
+		    ATTD_DATE,
+		    ATTD_STARTH,
+		    ATTD_STARTM,
+		    ATTD_ENDH,
+		    ATTD_ENDM,
+		    WS_CODE,
+		    MEM_ID
+		FROM
+		    ATTENDANCE
+		WHERE MEM_ID = #{memId}
+		AND ATTD_DATE = #{attdDate}
+	</select>
+	
+	<select id="selectWorkSchedule" parameterType="AttendanceVO" resultType="AttendanceVO">
+		SELECT
+			    ATTD_NO,
+			    ATTD_DATE,
+			    ATTD_STARTH,
+			    ATTD_STARTM,
+			    ATTD_ENDH,
+			    ATTD_ENDM,
+			    TO_CHAR(ATTD_DATE, 'YYYY-MM-DD') ||'T'|| ATTD_STARTH||':'||ATTD_STARTM AS WORK_START_TIME,
+			    TO_CHAR(ATTD_DATE, 'YYYY-MM-DD') ||'T'|| ATTD_ENDH||':'||ATTD_ENDM AS WORK_END_TIME,
+			    WS_CODE,
+			    MEM_ID
+		   FROM ATTENDANCE
+		  WHERE MEM_ID = #{memId}
+	</select>
+	
+	<select id="selectVacation" parameterType="VacaRecVO" resultType="VacaRecVO">
+		SELECT
+		    VACA_NO,
+		    TO_CHAR(VACA_BEGIN, 'YYYY-MM-DD') AS VACA_BEGIN,
+		    TO_CHAR(VACA_END, 'YYYY-MM-DD') AS VACA_END,
+		    B.VT_NAME VT_CODE,
+		    A.MEM_ID
+		FROM
+		    VACA_REC A LEFT OUTER JOIN VACA_TYPE B ON(A.VT_CODE = B.VT_CODE)
+		    			LEFT OUTER JOIN APRVL_DOC C ON(A.AD_NO = C.AD_NO)
+		WHERE A.MEM_ID = #{memId}
+		 AND C.DS_CODE = 'COMPLETE'
+	
+	</select>
+	<select id="selectWeekWorkTime" parameterType="String" resultType="WorkTimeVO">
+		WITH TEMP AS (
+			SELECT * FROM 
+			(
+			SELECT
+			    TO_CHAR( SYSDATE-( (SELECT TO_CHAR(SYSDATE,'D') FROM DUAL) -2 ), 'YYYY-MM-DD' ) AS MON,
+			    TO_CHAR( SYSDATE-( (SELECT TO_CHAR(SYSDATE,'D') FROM DUAL) -2 )+1, 'YYYY-MM-DD' ) AS TUE,
+			    TO_CHAR( SYSDATE-( (SELECT TO_CHAR(SYSDATE,'D') FROM DUAL) -2 )+2, 'YYYY-MM-DD' ) AS WED,
+			    TO_CHAR( SYSDATE-( (SELECT TO_CHAR(SYSDATE,'D') FROM DUAL) -2 )+3, 'YYYY-MM-DD' ) AS THU,
+			    TO_CHAR( SYSDATE-( (SELECT TO_CHAR(SYSDATE,'D') FROM DUAL) -2 )+4, 'YYYY-MM-DD' ) AS FRI,
+			    TO_CHAR( SYSDATE-( (SELECT TO_CHAR(SYSDATE,'D') FROM DUAL) -2 )+5, 'YYYY-MM-DD' ) AS SAT,
+			    TO_CHAR( SYSDATE-( (SELECT TO_CHAR(SYSDATE,'D') FROM DUAL) -2 )+6, 'YYYY-MM-DD' ) AS SUN
+			    FROM DUAL
+			) 
+			UNPIVOT (WEEKDAY FOR WEEK IN (MON, TUE, WED, THU, FRI, SAT, SUN) )
+			)
+			SELECT 
+			     ROUND((TO_DATE(NVL(ATTD_ENDH,0)||':'||NVL(ATTD_ENDM,0), 'HH24:MI')-(TO_DATE(NVL(ATTD_STARTH,0)||':'||NVL(ATTD_STARTM,0), 'HH24:MI')))*24) AS WORK_TIME 
+			    , TEMP.WEEK
+			    , TEMP.WEEKDAY
+			  FROM (SELECT * 
+			        FROM ATTENDANCE
+			        WHERE MEM_ID= #{memId}
+			          AND WS_CODE = '2') ATTEND
+			        RIGHT OUTER JOIN TEMP ON (ATTD_DATE = TEMP.WEEKDAY)
+ 
+	</select>
+	
+	<select id="selectMonthWorkTime" parameterType="String" resultType="MonthWorkTimeVO"> 
+		SELECT NVL(LEFT_DAY,0) - NVL(VACA_DAYS,0) AS LEFT_DAY,
+				       NVL(WORK_DAY,0) AS WORK_DAY,
+				       NVL(VACA_DAYS,0) AS VACA_DAYS
+		 FROM (
+	 	    SELECT SUM(CASE WHEN VACA_END>LAST_DAY(SYSDATE) THEN
+		               TRUNC(LAST_DAY(SYSDATE) - VACA_BEGIN)+1
+		               ELSE (VACA_END - VACA_BEGIN)+1 END) VACA_DAYS
+		    FROM VACA_REC
+		   WHERE MEM_ID = #{memId}
+		     AND VACA_BEGIN BETWEEN TRUNC(SYSDATE,'MM') AND LAST_DAY(SYSDATE) ) A,
+		     ( 
+		    WITH TEMP AS (
+		          SELECT  CAST (TO_CHAR (LAST_DAY (SYSDATE), 'DD') AS INT) AS DAY
+		            FROM  DUAL)
+		    SELECT  TEMP.DAY - COUNT(ATTD_DATE) AS LEFT_DAY,
+		            COUNT(ATTD_DATE) AS WORK_DAY
+		      FROM  ATTENDANCE, TEMP
+		      WHERE MEM_ID = #{memId}
+		        AND ATTD_DATE BETWEEN TRUNC(SYSDATE,'MM') AND LAST_DAY(SYSDATE))B
+	</select>
+	<select id="selectTodayWorkTime" parameterType="AttendanceVO" resultType="AttendanceVO">
+		SELECT
+		    ATTD_NO, 
+		    ATTD_DATE,
+		    ATTD_STARTH,
+		    ATTD_STARTM,
+		    ATTD_ENDH,
+		    ATTD_ENDM,
+		    WS_CODE,
+		    MEM_ID
+		FROM
+		    ATTENDANCE
+		WHERE MEM_ID = #{memId}
+		AND ATTD_DATE = to_date(sysdate)
+	</select>
+</mapper>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- [[개정이력(Modification Information)]] -->
+<!-- 수정일 수정자 수정내용 -->
+<!-- ========== ====== ============== -->
+<!-- 2021. 1. 25. 윤한빈 최초작성 -->
+<!-- Copyright (c) 2021 by DDIT All right reserved -->
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd" >
+<tiles-definitions>
+
+<!-- 운주 수정 : 프로필설정 left Menu -->
+	<definition name="profileLeft" extends="parent">
+		<put-attribute name="leftMenu" value="/includee/leftMenus/profileLeftMenu.jsp" />
+	</definition>
+	
+<!-- 프로필 -->
+	<definition name="/profile/*" extends="profileLeft">
+		<put-attribute name="content" value="/WEB-INF/views/profile/{1}.jsp" />
+	</definition>
+	
+</tiles-definitions>

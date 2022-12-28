@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+<Configuration status="WARN">
+<!-- appender : where -->
+<!-- message : what -->
+<!-- layout : how -->
+<!-- logger : who(전달자) -->
+<!-- level : logging event 등급   debug->info->warn->error->fatal -->
+<Properties>
+	<Property name="logName">logtest</Property>
+</Properties>
+	
+  <Appenders>
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%-5level %logger{1.1.~.~} - %msg%n"/>
+    </Console>
+    <RollingFile name="file" fileName="D:/A_TeachingMaterial/7.LastProject/loggers/${logName}.log"
+    	filePattern="/loggers/${logName}_%d{yyyy-MM-dd}_%i.log">
+		<PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n"/>
+	   <Policies>
+	    	<SizeBasedTriggeringPolicy size="10MB" /> <!-- 10MB 용량이 초과시 DefaultRolloverStrategy 정책만큼 넘버링 -->      
+	   	 	<TimeBasedTriggeringPolicy module="true" interval="1" /><!-- 일별 로그 파일 생성-->
+	   </Policies>
+	   <DefaultRolloverStrategy max="500" fileIndex="min" /><!-- 롤링 파일 500개 까지 생성 -->
+	</RollingFile>
+  </Appenders>
+  
+  <Loggers>
+    <Logger name="kr.or.ddit" level="info" additivity="false">
+      <AppenderRef ref="file"/>
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="jdbc.sqltiming" level="trace" additivity="false">
+      <AppenderRef ref="file"/>
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="jdbc.resultsettable" level="debug" additivity="false">
+    	<AppenderRef ref="file"/>
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="org.springframework.web" level="info" additivity="false">
+    	<AppenderRef ref="file"/>
+      <AppenderRef ref="Console"/>
+    </Logger>
+    <Logger name="egovframework.rte.fdl.cmmn" level="debug" additivity="false">
+    	<AppenderRef ref="file"/>
+      <AppenderRef ref="Console"/>
+    </Logger>
+    
+    <Root level="error">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="file"/>
+    </Root>
+  </Loggers>
+</Configuration>

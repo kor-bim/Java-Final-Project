@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.elecapproval.dao.ApprovalFarmboxDAO">
+
+	<select id="selectApprvalFarmboxList" parameterType="DocumentsVO" resultType="DocumentsVO">
+		SELECT
+		      DFORM.DOC_TYPE_CODE,
+		      TCODE.DOC_TYPE_NAME,
+		      DF_NO,
+		      DF_NAME,
+		      DF_CONTENT,
+		      DF_USE_YN,
+		      SCU_CODE,
+		      PRES_CODE,
+		      NVL(DF_DESCRIPTION, ' ') DF_DESCRIPTION,
+		      AL_CODE
+		  FROM DOC_FORM DFORM
+		       LEFT OUTER JOIN DOC_ALIAS_CODE ACODE ON (DFORM.DOC_ALIAS_CODE = ACODE.DOC_ALIAS_CODE)
+		       , DOC_TYPE_CODE TCODE
+		 WHERE DFORM.DOC_TYPE_CODE = TCODE.DOC_TYPE_CODE
+		 ORDER BY DF_NO DESC
+	</select>
+	
+	<insert id="insertFarmbox" parameterType="DocumentsVO">
+		<selectKey keyProperty="dfNo" resultType="int" order="BEFORE">
+			SELECT MAX(DF_NO)+1
+			  FROM DOC_FORM
+		</selectKey>
+		INSERT INTO DOC_FORM (
+		    DF_NO,
+		    DF_NAME,
+		    DF_CONTENT,
+		    DF_USE_YN,
+		    DOC_TYPE_CODE,
+		    SCU_CODE,
+		    PRES_CODE,
+		    DF_DESCRIPTION,
+		    AL_CODE
+		) VALUES (
+			#{dfNo, jdbcType=NUMERIC}
+			, #{dfName, jdbcType=VARCHAR}
+			, #{dfContent, jdbcType=VARCHAR}
+			, #{dfUseYn, jdbcType=CHAR}
+			, #{docTypeCode, jdbcType=VARCHAR}
+			, #{scuCode, jdbcType=VARCHAR}
+			, #{presCode, jdbcType=VARCHAR}
+			, #{dfDescription, jdbcType=VARCHAR}
+			, #{alCode, jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<select id="selectFarm" parameterType="int" resultType="DocumentsVO">
+		WITH PRES AS (
+		    SELECT CODE PCODE, CODE_NAME PNAME
+		      FROM COMMON_CODE 
+		     WHERE GROUP_CODE = 'PRES'
+		),
+		ALINE AS (
+		    SELECT CODE, CODE_NAME CNAME
+		      FROM COMMON_CODE 
+		     WHERE GROUP_CODE = 'ALS'
+		)
+		SELECT
+		      DFORM.DOC_TYPE_CODE,
+		      TCODE.DOC_TYPE_NAME,
+		      DF_NO,
+		      DF_NAME,
+		      DF_CONTENT,
+		      DF_USE_YN,
+		      SCU_CODE,
+		      PRES_CODE,
+		      PNAME PRES_NAME,
+		      DF_DESCRIPTION,
+		      AL_CODE,
+		      CNAME AL_NAME
+		  FROM DOC_FORM DFORM
+		       LEFT OUTER JOIN DOC_ALIAS_CODE ACODE ON (DFORM.DOC_ALIAS_CODE = ACODE.DOC_ALIAS_CODE)
+		       , DOC_TYPE_CODE TCODE
+		       , PRES
+		       , ALINE
+		 WHERE DFORM.DOC_TYPE_CODE = TCODE.DOC_TYPE_CODE
+		   AND PRES.PCODE = PRES_CODE
+		   AND ALINE.CODE = AL_CODE
+		   AND DF_NO = #{dfNo, jdbcType=NUMERIC}
+	</select>
+	
+	<update id="updateFarmbox" parameterType="DocumentsVO">
+		UPDATE DOC_FORM
+		   SET DF_NAME 			 = #{dfName, jdbcType=VARCHAR}
+			   , DF_CONTENT      = #{dfContent, jdbcType=VARCHAR}
+			   , DF_USE_YN       = #{dfUseYn, jdbcType=VARCHAR}
+			   , DOC_TYPE_CODE   = #{docTypeCode, jdbcType=VARCHAR}
+			   , SCU_CODE        = #{scuCode, jdbcType=VARCHAR}
+			   , PRES_CODE       = #{presCode, jdbcType=VARCHAR}
+			   , DF_DESCRIPTION  = #{dfDescription, jdbcType=VARCHAR}
+			   , AL_CODE         = #{alCode, jdbcType=VARCHAR}
+	     WHERE DF_NO = #{dfNo, jdbcType=NUMERIC}
+	</update>
+	
+	<delete id="deleteFarmbox" parameterType="int">
+		DELETE FROM DOC_FORM
+		 WHERE DF_NO = #{dfNo, jdbcType=NUMERIC}
+	</delete>
+	
+	<select id="selectApprovalDocTypeList" parameterType="DocumentsVO" resultType="DocumentsVO">
+		SELECT
+		    DOC_TYPE_CODE,
+		    DOC_TYPE_NAME
+		  FROM DOC_TYPE_CODE
+		 ORDER BY DOC_TYPE_CODE
+	</select>
+	
+	<insert id="insertDocType" parameterType="DocumentsVO">
+		<selectKey keyProperty="docTypeCode" resultType="string" order="BEFORE">
+			SELECT 'DTC' || TO_CHAR(MAX(TO_NUMBER(SUBSTR(DOC_TYPE_CODE,4))+1))
+  			  FROM DOC_TYPE_CODE
+		</selectKey>
+		  INSERT INTO DOC_TYPE_CODE (
+			    DOC_TYPE_CODE,
+			    DOC_TYPE_NAME
+			) VALUES (
+				#{docTypeCode, jdbcType=VARCHAR}
+				, #{docTypeName, jdbcType=VARCHAR}
+			)
+	</insert>
+	
+	<update id="updateDocType" parameterType="DocumentsVO">
+		UPDATE DOC_TYPE_CODE
+		   SET DOC_TYPE_NAME = #{docTypeName}
+  		 WHERE DOC_TYPE_CODE = #{docTypeCode}
+	</update>
+	
+	<delete id="deleteDocType" parameterType="string">
+		DELETE FROM DOC_TYPE_CODE
+		 WHERE DOC_TYPE_CODE = #{docTypeCode, jdbcType=VARCHAR}
+		   AND DOC_TYPE_NAME = #{docTypeName, jdbcType=VARCHAR}
+	</delete>
+	
+	<select id="approvalFarmCheck" parameterType="DocumentsVO" resultType="int">
+		SELECT COUNT(*)
+		  FROM DOC_FORM
+		 WHERE DOC_TYPE_CODE = #{docTypeCode, jdbcType=VARCHAR}
+	</select>
+	
+</mapper>

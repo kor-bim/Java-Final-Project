@@ -1,0 +1,28 @@
+/**
+ * <pre>
+ * 
+ * </pre>
+ * @author 이운주
+ * @since 2021. 1. 27.
+ * @version 1.0
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ * 수정일        수정자       수정내용
+ * --------     --------    ----------------------
+ * 2021. 1. 27.      이운주           최초작성
+ * Copyright (c) 2021 by DDIT All right reserved
+ * </pre>
+ */
+@charset "UTF-8";
+
+@font-face {
+	font-family: 'Material Icons';
+	font-style: normal;
+	font-weight: 400;
+	src: url(path/to/MaterialIcons-Regular.eot); /* For IE6-8 */
+	src: local('Material Icons'), local('MaterialIcons-Regular'),
+		url(path/to/MaterialIcons-Regular.woff2) format('woff2'),
+		url(path/to/MaterialIcons-Regular.woff) format('woff'),
+		url(path/to/MaterialIcons-Regular.ttf) format('truetype');
+}
+

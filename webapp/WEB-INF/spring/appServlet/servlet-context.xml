@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans
+	xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+
+
+	<!-- 우리 눈엔 안보이지만 약 25개의 빈이 등록됨 -->
+	<annotation-driven>
+		<argument-resolvers>
+			<beans:bean
+				class="org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver"></beans:bean>
+		</argument-resolvers>
+	</annotation-driven>
+	<default-servlet-handler /> <!-- 디스패쳐가 받은 정적 요청이 톰캣의 디폴트 서블릿으로 넘겨짐 -->
+
+	<!-- VIEW START -->
+	<beans:bean id="IRVR"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+		p:prefix="/WEB-INF/views/" p:suffix=".jsp" />
+	<!-- tiles -->
+	<beans:bean
+		class="org.springframework.web.servlet.view.tiles3.TilesConfigurer"
+		p:definitions="/WEB-INF/tiles/*.xml" />
+	<beans:bean id="TVR"
+		class="org.springframework.web.servlet.view.tiles3.TilesViewResolver"
+		p:order="2" />
+
+	<!-- 등록된 빈의 아이디와 논리적뷰네임 비교 -->
+	<beans:bean id="BNVR"
+		class="org.springframework.web.servlet.view.BeanNameViewResolver"
+		p:order="1" />
+
+	<!-- JSON 응답데이터 : id는 반드시 jsonView : 우리가 논리적인 viewName으로 jsonView 쓰기로 정했으니까 -->
+	<!-- DownloadView 분리해서 역할구분.책임분리 -->
+	<beans:bean id="jsonView"
+		class="org.springframework.web.servlet.view.json.MappingJackson2JsonView" />
+
+	<!-- VIEW END -->
+
+	<context:component-scan
+		base-package="kr.or.ddit" use-default-filters="false">
+
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+		<context:include-filter type="annotation"
+			expression="org.springframework.web.bind.annotation.ControllerAdvice" />
+	</context:component-scan>
+
+
+
+	<beans:bean
+		class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+		<beans:property name="defaultErrorView"
+			value="errors/egovError" />
+		<beans:property name="exceptionMappings">
+			<beans:props>
+				<beans:prop
+					key="org.springframework.dao.DataAccessException">commons/errors/dataAccessFailure</beans:prop>
+				<beans:prop
+					key="org.springframework.transaction.TransactionException">commons/errors/transactionFailure</beans:prop>
+				<beans:prop
+					key="egovframework.rte.fdl.cmmn.exception.EgovBizException">commons/errors/egovError</beans:prop>
+				<beans:prop
+					key="org.springframework.security.AccessDeniedException">commons/errors/egovError</beans:prop>
+			</beans:props>
+		</beans:property>
+	</beans:bean>
+
+	<security:global-method-security
+		pre-post-annotations="enabled" proxy-target-class="true" />
+
+	<!-- 02/09 AA 변경사항 : 개발환경(dev)/실행환경(stage)에서 정적요청에 대한 캐시관리 방법 분리 js 등 소스 
+		변경시 브라우저에서 빨리 적용되게 해서 개발시간 단축시키기 위함. -->
+	<!-- i18n , l10n 지원 -->
+
+	<beans:beans profile="stage">
+		<interceptors>
+			<interceptor>
+				<mapping path="/**" />
+				<beans:bean
+					class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor"
+					p:paramName="lang" />
+			</interceptor>
+		</interceptors>
+	</beans:beans>
+
+	<beans:beans profile="dev">
+		<interceptors>
+			<interceptor>
+				<mapping path="/**" />
+				<beans:bean
+					class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor"
+					p:paramName="lang" />
+			</interceptor>
+			<beans:bean
+				class="org.springframework.web.servlet.mvc.WebContentInterceptor"
+				p:useCacheControlHeader="true" 
+				p:useCacheControlNoStore="true"
+				p:useExpiresHeader="true" />
+		</interceptors>
+	</beans:beans>
+
+</beans:beans>

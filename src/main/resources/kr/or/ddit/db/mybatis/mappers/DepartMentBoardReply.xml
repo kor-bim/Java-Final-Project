@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.board.dao.DepartMentBoardReplyDAO">
+
+	<sql id="whereClause">
+		WHERE DB_NO = #{searchDetail.dbNo}
+	</sql>
+	
+	<select id="selectReplyCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*) FROM DB_REPLY
+		<include refid="whereClause" />
+	</select>
+	<select id="selectReplyList" parameterType="PagingVO" resultType="DepartMentBoardReplyVO">
+		SELECT B.*
+		FROM (
+			SELECT A.*, ROWNUM RNUM 
+			FROM (
+				SELECT
+					   DBR_NO		    
+					 , D.MEM_NAME AS MEM_ID
+					 , DBR_DATE
+					 , DBR_CONTENT
+					 , DB_NO
+				     , DBR_PARENT
+				FROM DB_REPLY C LEFT OUTER JOIN MEMBER D ON(C.MEM_ID = D.MEM_ID)
+				<include refid="whereClause" />  
+				START WITH DBR_PARENT IS NULL
+				CONNECT BY PRIOR DBR_NO = DBR_PARENT
+				ORDER SIBLINGS BY DBR_NO DESC
+			)  A
+		)  B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<insert id="insertReply" parameterType="DepartMentBoardReplyVO">
+		<selectKey keyProperty="dbrNo" resultType="int" order="BEFORE">
+			SELECT NVL(MAX(DBR_NO), 0) + 1 FROM DB_REPLY
+		</selectKey>
+		INSERT INTO DB_REPLY (
+			  DBR_NO
+			, MEM_ID
+			, DBR_DATE
+			, DBR_CONTENT
+			, DB_NO
+		    <if test="dbrParent!=null and dbrParent gt 0">
+		    	, DBR_PARENT
+		    </if>
+		) VALUES (
+		      #{dbrNo,jdbcType=NUMERIC}
+		    , #{memId,jdbcType=VARCHAR}
+		    , SYSDATE
+		    , #{dbrContent,jdbcType=VARCHAR}
+		    , #{dbNo,jdbcType=NUMERIC}
+		     <if test="dbrParent!=null and dbrParent gt 0">
+		    	, #{dbrParent,jdbcType=NUMERIC}
+		    </if>
+		)
+	</insert>
+	
+	<update id="updateReply" parameterType="DepartMentBoardReplyVO">
+		UPDATE DB_REPLY
+		SET
+			DBR_CONTENT = #{dbrContent}
+		WHERE DBR_NO = #{dbrNo} 
+	</update>
+	
+	<delete id="deleteReply" parameterType="DepartMentBoardReplyVO">
+		DELETE FROM DB_REPLY 
+        WHERE DBR_NO IN (
+            SELECT DBR_NO 
+            FROM DB_REPLY
+            START WITH DBR_NO = #{dbrNo}
+            CONNECT BY PRIOR DBR_NO = DBR_PARENT
+        )
+	</delete>
+	
+</mapper>

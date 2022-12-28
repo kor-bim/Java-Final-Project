@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.schedule.dao.CalendarDAO">
+
+	<select id="selectTypeCalendar" parameterType="CalendarVO" resultType="CalendarVO">
+		SELECT
+		    CAL_NO,
+		    CAL_COLOR,
+		    CAL_CODE,
+		    MEM_ID,
+		    CAL_NAME
+		FROM CALENDAR
+	   WHERE MEM_ID = #{memId, jdbcType=VARCHAR}
+	</select>
+
+	<select id="selectCalendarList" parameterType="CalendarVO" resultType="CalendarVO">
+		SELECT
+		    CAL_NO,
+		    CAL_COLOR,
+		    CAL_CODE,
+		    MEM_ID,
+		    CAL_NAME
+		FROM CALENDAR
+	   WHERE MEM_ID = #{memId, jdbcType=VARCHAR}
+	     AND CAL_CODE = 'MYCAL'
+	</select>
+	
+	<select id="selectShareCalendarList" parameterType="CalendarVO" resultType="CalendarVO">
+		SELECT
+		    CAL_NO,
+		    CAL_COLOR,
+		    CAL_CODE,
+		    MEM_ID,
+		    CAL_NAME
+		FROM CALENDAR
+		WHERE MEM_ID = #{memId, jdbcType=VARCHAR}
+		 AND CAL_CODE = 'SHARECAL'
+		 
+		 UNION
+		 
+		 SELECT 
+		    CAL_NO,
+		    CAL_COLOR,
+		    CAL_CODE,
+		    MEM_ID,
+		    CAL_NAME
+		  FROM CALENDAR
+		 WHERE EXISTS (
+		    SELECT 
+		        SHARECALENDAR.CAL_NO
+		        ,SHARECALENDAR.MEM_ID
+		      FROM SHARECALENDAR
+		     WHERE MEM_ID = #{memId, jdbcType=VARCHAR}
+		       AND CALENDAR.CAL_NO = SHARECALENDAR.CAL_NO
+		 )
+	</select>
+	
+	<select id="selectCalendar" parameterType="int" resultType="CalendarVO">
+		SELECT
+		    CAL_NO,
+		    CAL_COLOR,
+		    CAL_CODE,
+		    MEM_ID,
+		    CAL_NAME
+		FROM CALENDAR
+		WHERE CAL_NO = #{calNo, jdbcType=NUMERIC}
+	</select>
+	
+	<insert id="insertCalendar" parameterType="CalendarVO">
+		<selectKey keyProperty="calNo" resultType="int" order="BEFORE">
+			SELECT NVL(MAX(CAL_NO), 0)+1
+			  FROM CALENDAR
+		</selectKey>
+		INSERT INTO CALENDAR (
+		    CAL_NO,
+		    CAL_COLOR,
+		    CAL_CODE,
+		    CAL_NAME,
+		    MEM_ID
+		) VALUES (
+			#{calNo, jdbcType=NUMERIC},
+			#{calColor, jdbcType=VARCHAR},
+			#{calCode, jdbcType=VARCHAR},
+			#{calName, jdbcType=VARCHAR},
+			#{memId, jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<update id="updateCalendar" parameterType="CalendarVO">
+		UPDATE CALENDAR
+		   SET CAL_NAME  = #{calName, jdbcType=VARCHAR},
+		   	   CAL_COLOR = #{calColor, jdbcType=VARCHAR}
+		 WHERE CAL_NO    = #{calNo}
+	</update>
+	
+	<delete id="deleteCalendar" parameterType="int">
+		DELETE FROM CALENDAR
+		 WHERE CAL_NO = #{calNo, jdbcType=NUMERIC }
+	</delete>
+	
+	<insert id="insertSharedCalendar" parameterType="CalendarVO">
+		<selectKey keyProperty="calNo" resultType="int" order="BEFORE">
+			SELECT MAX(CAL_NO)+1
+			  FROM CALENDAR
+		</selectKey>
+		INSERT INTO CALENDAR (
+		    CAL_NO,
+		    CAL_COLOR,
+		    CAL_CODE,
+		    CAL_NAME,
+		    MEM_ID
+		) VALUES (
+			#{calNo, jdbcType=NUMERIC},
+			#{calColor, jdbcType=VARCHAR},
+			#{calCode, jdbcType=VARCHAR},
+			#{calName, jdbcType=VARCHAR},
+			#{memId, jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<insert id="insertSharedMemberList" parameterType="CalendarVO">
+		INSERT ALL
+		<foreach collection="calendarMember" item="calendar">
+			INTO SHARECALENDAR (
+				MEM_ID
+				, CAL_NO
+			) VALUES (
+				#{calendar, jdbcType=VARCHAR}
+				, #{calNo, jdbcType=NUMERIC}
+			)
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+	
+	<delete id="deleteSharedCalendar" parameterType="int">
+		DELETE FROM CALENDAR
+ 		 WHERE CAL_NO = #{calNo, jdbcType=NUMERIC}
+	</delete>
+	
+	<resultMap type="CalendarVO" id="calendarMap">
+		<id property="calNo" column="CAL_NO"/>
+		<collection property="memberList" javaType="java.util.List" ofType="MemberVO" autoMapping="true">
+			
+		</collection>
+	</resultMap>
+	<select id="selectOptionMemberList" parameterType="CalendarVO" resultMap="calendarMap">
+		SELECT A.MEM_ID MEM_ID
+		       , CAL_NO
+		       , B.MEM_NAME
+		       , C.DEPT_NAME
+		  FROM SHARECALENDAR A RIGHT OUTER JOIN MEMBER B ON(A.MEM_ID = B.MEM_ID)
+		                       LEFT OUTER JOIN DEPARTMENT C ON(B.DEPT_CODE = C.DEPT_CODE)
+		 WHERE CAL_NO = #{calNo, jdbcType=NUMERIC}
+	</select>
+
+	<delete id="deleteSharedCalendarMemberList" parameterType="int" >
+		DELETE FROM SHARECALENDAR
+ 		 WHERE CAL_NO = #{calNo, jdbcType=NUMERIC}
+	</delete>
+	
+	<insert id="insertCalendarMember" parameterType="CalendarVO">
+		INSERT ALL 
+		 INTO SHARECALENDAR 
+		<foreach collection="calendarMember" item="member" index="idx">
+			<if test="idx != 0">
+				union all		 
+			</if>
+		    
+		    SELECT #{calNo} , #{member}
+		      FROM DUAL
+		WHERE NOT EXISTS (SELECT CAL_NO , MEM_ID 
+		                    FROM SHARECALENDAR
+		                   WHERE CAL_NO = #{calNo}
+                    		 AND MEM_ID = #{member}
+		                  )
+		</foreach>
+	</insert>
+	
+	<delete id="deleteCalendarMember" parameterType="CalendarVO">
+		DELETE FROM SHARECALENDAR
+        WHERE CAL_NO = #{calNo, jdbcType=NUMERIC}
+          AND MEM_ID IN( SELECT MEM_ID 
+                          FROM (
+                                SELECT CAL_NO, MEM_ID
+                                  FROM SHARECALENDAR
+                                 WHERE CAL_NO = #{calNo, jdbcType=NUMERIC}
+                                MINUS
+                                ( 
+                                <foreach collection="calendarMember" item="member" index="idx">
+                                <if test="idx != 0">
+                                	UNION ALL
+                                </if>
+                                 SELECT #{calNo} , #{member}
+                                    FROM SYS.DUAL
+                                 </foreach>
+                                 )
+                            )
+                        )
+	</delete>
+	
+	<select id="scheduleInCalendarCount" parameterType="CalendarVO" resultType="int">
+		SELECT COUNT(*)
+		  FROM SCHEDULE
+		 WHERE CAL_NO = #{calNo, jdbcType=NUMERIC}
+	</select>
+</mapper>

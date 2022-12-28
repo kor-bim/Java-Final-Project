@@ -1,0 +1,610 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.elecapproval.dao.ElecapprovalInBoxDAO">
+	<sql id="searchFrag">
+		<where>
+			<if test="searchVO!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+				<choose>
+					<when test="'no'.equals(searchVO.searchType)">
+						INSTR(AD_NO, #{searchVO.searchWord}) > 0
+					</when>
+					<when test="'title'.equals(searchVO.searchType)">
+						INSTR(AD_TITLE, #{searchVO.searchWord}) > 0
+					</when>
+					<when test="'writer'.equals(searchVO.searchType)">
+						INSTR(MEM_ID, #{searchVO.searchWord}) > 0
+					</when>
+					<when test="'doc'.equals(searchVO.searchType)">
+						INSTR(DF_NO, #{searchVO.searchWord}) > 0
+					</when>
+					<otherwise>
+						INSTR(AD_NO, #{searchVO.searchWord}) > 0
+						OR INSTR(AD_TITLE, #{searchVO.searchWord}) > 0
+						OR INSTR(MEM_ID, #{searchVO.searchWord}) > 0
+						OR INSTR(DF_NO, #{searchVO.searchWord}) > 0
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+		ORDER BY AD_DATE DESC, SUBSTR(AD_NO, 10,4) DESC
+	</sql>
+	
+	<select id="selectInBoxAllListCount" parameterType="PagingVO" resultType="int">
+		WITH DETAIL AS (
+		SELECT
+		    AL_NO,
+		    ALD_NO,
+		    MEM_ID,
+		    CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		         WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		         WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		         WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		         WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		         WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		         WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		         WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		         WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+		FROM AL_DETAIL
+		WHERE MEM_ID = #{userId})
+		    SELECT COUNT(*)     
+		      FROM (SELECT  AD_NO
+		                  , AD_TITLE
+		                  , MEM.MEM_NAME AS MEM_ID
+		                  , AD_DATE
+		                  , AD_FINISH_DATE
+		                  , DF.DF_NAME AS DF_NAME
+		                  , DT.ALDT_CODE AS ALDT_NAME
+		                  , AD_JG_YN
+		                  , AD_DG_YN
+		                  , AD_HG_YN
+		                  , AD_DEL
+		                  , AD.AL_NO
+		                  , AD.DF_NO
+		                  , DS_CODE
+		          FROM APRVL_DOC AD LEFT OUTER JOIN DOC_FORM DF ON (AD.DF_NO = DF.DF_NO)
+		                            LEFT OUTER JOIN MEMBER MEM ON (AD.MEM_ID = MEM.MEM_ID)
+		                            LEFT OUTER JOIN DETAIL DT ON (AD.AL_NO = DT.AL_NO)
+		         WHERE (DS_CODE IN ('COMPLETE') OR (DS_CODE IN('RETURN') AND MEM.MEM_ID = #{userId}))
+		           AND AD_DEL = 'N'
+		           AND DT.MEM_ID = #{userId})
+		     <include refid="searchFrag" />
+	</select>
+	<select id="selectInBoxAllList" parameterType="PagingVO" resultType="InBoxVO">
+		WITH DETAIL AS (
+		SELECT
+		    AL_NO,
+		    ALD_NO,
+		    MEM_ID,
+		    CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		         WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		         WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		         WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		         WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		         WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		         WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		         WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		         WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+		FROM AL_DETAIL
+		WHERE MEM_ID = #{userId})
+		SELECT B.*
+		  FROM ( SELECT ROWNUM RNUM, A.*
+		            FROM( SELECT  AD_NO
+		                      , AD_TITLE
+		                      , MEM.MEM_NAME AS MEM_ID
+		                      , AD_DATE
+		                      , AD_FINISH_DATE
+		                      , DF.DF_NAME AS DF_NAME
+		                      , DT.ALDT_CODE AS ALDT_NAME
+		                      , AD_JG_YN
+		                      , AD_DG_YN
+		                      , AD_HG_YN
+		                      , AD_DEL
+		                      , AD.AL_NO
+		                      , AD.DF_NO
+		                      , DS_CODE
+		              FROM APRVL_DOC AD LEFT OUTER JOIN DOC_FORM DF ON (AD.DF_NO = DF.DF_NO)
+		                                LEFT OUTER JOIN MEMBER MEM ON (AD.MEM_ID = MEM.MEM_ID)
+		                                LEFT OUTER JOIN DETAIL DT ON (AD.AL_NO = DT.AL_NO)
+		             WHERE (DS_CODE IN ('COMPLETE') OR (DS_CODE IN('RETURN') AND MEM.MEM_ID = #{userId}))
+		               AND AD_DEL = 'N'
+		               AND DT.MEM_ID = #{userId}
+		               ORDER BY AD_NO DESC) A
+		   <include refid="searchFrag" /> ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<!-- 기안 -->
+	<select id="selectInBoxDraftListCount" parameterType="PagingVO" resultType="int">
+		WITH DETAIL AS (
+		SELECT
+		    AL_NO,
+		    ALD_NO,
+		    MEM_ID,
+		    CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		         WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		         WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		         WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		         WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		         WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		         WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		         WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		         WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+		FROM AL_DETAIL
+		WHERE MEM_ID = #{userId}
+		  AND ALDT_CODE = 'DRAFT')
+		    SELECT COUNT(*)     
+		      FROM (SELECT  AD_NO
+		                  , AD_TITLE
+		                  , MEM.MEM_NAME AS MEM_ID
+		                  , AD_DATE
+		                  , AD_FINISH_DATE
+		                  , DF.DF_NAME AS DF_NAME
+		                  , DT.ALDT_CODE AS ALDT_NAME
+		                  , AD_JG_YN
+		                  , AD_DG_YN
+		                  , AD_HG_YN
+		                  , AD_DEL
+		                  , AD.AL_NO
+		                  , AD.DF_NO
+		                  , DS_CODE
+		          FROM APRVL_DOC AD LEFT OUTER JOIN DOC_FORM DF ON (AD.DF_NO = DF.DF_NO)
+		                            LEFT OUTER JOIN MEMBER MEM ON (AD.MEM_ID = MEM.MEM_ID)
+		                            LEFT OUTER JOIN DETAIL DT ON (AD.AL_NO = DT.AL_NO)
+		         WHERE (DS_CODE IN ('COMPLETE') OR (DS_CODE IN('RETURN') AND MEM.MEM_ID = #{userId}))
+		           AND AD_DEL = 'N'
+		           AND DT.MEM_ID = #{userId})
+		     <include refid="searchFrag" />
+	</select>
+	<select id="selectInBoxDraftList" parameterType="PagingVO" resultType="InBoxVO">
+		WITH DETAIL AS (
+		SELECT
+		    AL_NO,
+		    ALD_NO,
+		    MEM_ID,
+		    CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		         WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		         WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		         WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		         WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		         WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		         WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		         WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		         WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+		FROM AL_DETAIL
+		WHERE MEM_ID = #{userId}
+		  AND ALDT_CODE = 'DRAFT')
+		SELECT B.*
+		  FROM ( SELECT ROWNUM RNUM, A.*
+		            FROM( SELECT  AD_NO
+		                      , AD_TITLE
+		                      , MEM.MEM_NAME AS MEM_ID
+		                      , AD_DATE
+		                      , AD_FINISH_DATE
+		                      , DF.DF_NAME AS DF_NAME
+		                      , DT.ALDT_CODE AS ALDT_NAME
+		                      , AD_JG_YN
+		                      , AD_DG_YN
+		                      , AD_HG_YN
+		                      , AD_DEL
+		                      , AD.AL_NO
+		                      , AD.DF_NO
+		                      , DS_CODE
+		              FROM APRVL_DOC AD LEFT OUTER JOIN DOC_FORM DF ON (AD.DF_NO = DF.DF_NO)
+		                                LEFT OUTER JOIN MEMBER MEM ON (AD.MEM_ID = MEM.MEM_ID)
+		                                LEFT OUTER JOIN DETAIL DT ON (AD.AL_NO = DT.AL_NO)
+		             WHERE (DS_CODE IN ('COMPLETE') OR (DS_CODE IN('RETURN') AND MEM.MEM_ID = #{userId}))
+		               AND AD_DEL = 'N'
+		               AND DT.MEM_ID = #{userId}
+		               ORDER BY AD_NO DESC) A
+		   <include refid="searchFrag" /> ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<!-- 기안 끝 -->
+	
+	<!-- 결재 -->
+	<select id="selectInBoxApprovalListCount" parameterType="PagingVO" resultType="int">
+		WITH DETAIL AS (
+		SELECT
+		    AL_NO,
+		    ALD_NO,
+		    MEM_ID,
+		    CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		         WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		         WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		         WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		         WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		         WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		         WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		         WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		         WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+		FROM AL_DETAIL
+		WHERE MEM_ID = #{userId}
+  		  AND ALDT_CODE = 'APPROVAL')
+		    SELECT COUNT(*)     
+		      FROM (SELECT  AD_NO
+		                  , AD_TITLE
+		                  , MEM.MEM_NAME AS MEM_ID
+		                  , AD_DATE
+		                  , AD_FINISH_DATE
+		                  , DF.DF_NAME AS DF_NAME
+		                  , DT.ALDT_CODE AS ALDT_NAME
+		                  , AD_JG_YN
+		                  , AD_DG_YN
+		                  , AD_HG_YN
+		                  , AD_DEL
+		                  , AD.AL_NO
+		                  , AD.DF_NO
+		                  , DS_CODE
+		          FROM APRVL_DOC AD LEFT OUTER JOIN DOC_FORM DF ON (AD.DF_NO = DF.DF_NO)
+		                            LEFT OUTER JOIN MEMBER MEM ON (AD.MEM_ID = MEM.MEM_ID)
+		                            LEFT OUTER JOIN DETAIL DT ON (AD.AL_NO = DT.AL_NO)
+		         WHERE (DS_CODE IN ('COMPLETE') OR (DS_CODE IN('RETURN') AND MEM.MEM_ID = #{userId}))
+		           AND AD_DEL = 'N'
+		           AND DT.MEM_ID = #{userId})
+		     <include refid="searchFrag" />
+	</select>
+	<select id="selectInBoxApprovalList" parameterType="PagingVO" resultType="InBoxVO">
+		WITH DETAIL AS (
+		SELECT
+		    AL_NO,
+		    ALD_NO,
+		    MEM_ID,
+		    CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		         WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		         WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		         WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		         WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		         WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		         WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		         WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		         WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+		FROM AL_DETAIL
+		WHERE MEM_ID = #{userId}
+  		  AND ALDT_CODE = 'APPROVAL')
+		SELECT B.*
+		  FROM ( SELECT ROWNUM RNUM, A.*
+		            FROM( SELECT  AD_NO
+		                      , AD_TITLE
+		                      , MEM.MEM_NAME AS MEM_ID
+		                      , AD_DATE
+		                      , AD_FINISH_DATE
+		                      , DF.DF_NAME AS DF_NAME
+		                      , DT.ALDT_CODE AS ALDT_NAME
+		                      , AD_JG_YN
+		                      , AD_DG_YN
+		                      , AD_HG_YN
+		                      , AD_DEL
+		                      , AD.AL_NO
+		                      , AD.DF_NO
+		                      , DS_CODE
+		              FROM APRVL_DOC AD LEFT OUTER JOIN DOC_FORM DF ON (AD.DF_NO = DF.DF_NO)
+		                                LEFT OUTER JOIN MEMBER MEM ON (AD.MEM_ID = MEM.MEM_ID)
+		                                LEFT OUTER JOIN DETAIL DT ON (AD.AL_NO = DT.AL_NO)
+		             WHERE (DS_CODE IN ('COMPLETE') OR (DS_CODE IN('RETURN') AND MEM.MEM_ID = #{userId}))
+		               AND AD_DEL = 'N'
+		           	   AND DT.MEM_ID = #{userId}
+		           	   ORDER BY AD_NO DESC) A
+		   <include refid="searchFrag" /> ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<!-- 결재 끝 -->
+	
+	<!-- 수신 -->
+	<select id="selectInBoxReceptionListCount" parameterType="PagingVO" resultType="int">
+		WITH DETAIL AS (
+		SELECT
+		    AL_NO,
+		    ALD_NO,
+		    MEM_ID,
+		    CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		         WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		         WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		         WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		         WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		         WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		         WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		         WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		         WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+		FROM AL_DETAIL
+		WHERE MEM_ID = #{userId}
+		  AND ALDT_CODE = 'RECETION')
+		    SELECT COUNT(*)     
+		      FROM (SELECT  AD_NO
+		                  , AD_TITLE
+		                  , MEM.MEM_NAME AS MEM_ID
+		                  , AD_DATE
+		                  , AD_FINISH_DATE
+		                  , DF.DF_NAME AS DF_NAME
+		                  , DT.ALDT_CODE AS ALDT_NAME
+		                  , AD_JG_YN
+		                  , AD_DG_YN
+		                  , AD_HG_YN
+		                  , AD_DEL
+		                  , AD.AL_NO
+		                  , AD.DF_NO
+		                  , DS_CODE
+		          FROM APRVL_DOC AD LEFT OUTER JOIN DOC_FORM DF ON (AD.DF_NO = DF.DF_NO)
+		                            LEFT OUTER JOIN MEMBER MEM ON (AD.MEM_ID = MEM.MEM_ID)
+		                            LEFT OUTER JOIN DETAIL DT ON (AD.AL_NO = DT.AL_NO)
+		         WHERE (DS_CODE IN ('COMPLETE') OR (DS_CODE IN('RETURN') AND MEM.MEM_ID = #{userId}))
+		           AND AD_DEL = 'N'
+		           AND DT.MEM_ID = #{userId})
+		     <include refid="searchFrag" />
+	</select>
+	<select id="selectInBoxReceptionList" parameterType="PagingVO" resultType="InBoxVO">
+		WITH DETAIL AS (
+		SELECT
+		    AL_NO,
+		    ALD_NO,
+		    MEM_ID,
+		    CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		         WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		         WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		         WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		         WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		         WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		         WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		         WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		         WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+		FROM AL_DETAIL
+		WHERE MEM_ID = #{userId}
+		  AND ALDT_CODE = 'RECETION')
+		SELECT B.*
+		  FROM ( SELECT ROWNUM RNUM, A.*
+		            FROM( SELECT  AD_NO
+		                      , AD_TITLE
+		                      , MEM.MEM_NAME AS MEM_ID
+		                      , AD_DATE
+		                      , AD_FINISH_DATE
+		                      , DF.DF_NAME AS DF_NAME
+		                      , DT.ALDT_CODE AS ALDT_NAME
+		                      , AD_JG_YN
+		                      , AD_DG_YN
+		                      , AD_HG_YN
+		                      , AD_DEL
+		                      , AD.AL_NO
+		                      , AD.DF_NO
+		                      , DS_CODE
+		              FROM APRVL_DOC AD LEFT OUTER JOIN DOC_FORM DF ON (AD.DF_NO = DF.DF_NO)
+		                                LEFT OUTER JOIN MEMBER MEM ON (AD.MEM_ID = MEM.MEM_ID)
+		                                LEFT OUTER JOIN DETAIL DT ON (AD.AL_NO = DT.AL_NO)
+		             WHERE (DS_CODE IN ('COMPLETE') OR (DS_CODE IN('RETURN') AND MEM.MEM_ID = #{userId}))
+		               AND AD_DEL = 'N'
+		           	   AND DT.MEM_ID = #{userId}
+		           	   ORDER BY AD_NO DESC) A
+		   <include refid="searchFrag" /> ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<!-- 수신 끝 -->
+
+	<!-- 회람/참조 OK -->
+	<select id="selectInBoxPassAlongListCount" parameterType="PagingVO" resultType="int">
+		WITH DETAIL AS (
+		SELECT
+		    AL_NO,
+		    ALD_NO,
+		    MEM_ID,
+		    CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		         WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		         WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		         WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		         WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		         WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		         WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		         WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		         WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+		FROM AL_DETAIL
+		WHERE MEM_ID = #{userId}
+		  AND ALDT_CODE = 'REFERENCE'), 
+          
+          APPROVAL AS ( SELECT AP_NO
+		                         , AD_NO
+		                         , AD_COMMENT
+		                         , AD_RD
+		                         , AD_AD
+		                         , MEM_ID
+		                         , APRVL_TYPE_CODE
+		                         , APRVL_STATE_CODE
+		                    FROM APRVL
+		                   WHERE MEM_ID =  #{userId}
+                             AND APRVL_STATE_CODE = 'COMPLETE')
+		    SELECT COUNT(*)     
+		      FROM (SELECT  AD.AD_NO
+		                  , AD_TITLE
+		                  , MEM.MEM_NAME AS MEM_ID
+		                  , AD_DATE
+		                  , AD_FINISH_DATE
+		                  , DF.DF_NAME AS DF_NAME
+		                  , DT.ALDT_CODE AS ALDT_NAME
+		                  , AD_JG_YN
+		                  , AD_DG_YN
+		                  , AD_HG_YN
+		                  , AD_DEL
+		                  , AD.AL_NO
+		                  , AD.DF_NO
+		                  , DS_CODE
+		                  , AP.APRVL_STATE_CODE
+		          FROM APRVL_DOC AD LEFT OUTER JOIN DOC_FORM DF ON (AD.DF_NO = DF.DF_NO)
+		                            LEFT OUTER JOIN MEMBER MEM ON (AD.MEM_ID = MEM.MEM_ID)
+		                            LEFT OUTER JOIN DETAIL DT ON (AD.AL_NO = DT.AL_NO)
+		                            LEFT OUTER JOIN APPROVAL AP ON(AP.AD_NO = AD.AD_NO) 
+		         WHERE (DS_CODE IN ('COMPLETE') OR (DS_CODE IN('RETURN') AND MEM.MEM_ID = #{userId}))
+		           AND AD_DEL = 'N'
+		           AND DT.MEM_ID = #{userId}
+		           AND AP.APRVL_STATE_CODE = 'COMPLETE')
+		     <include refid="searchFrag" />
+	</select>
+	<select id="selectInBoxPassAlongList" parameterType="PagingVO" resultType="InBoxVO">
+		WITH DETAIL AS (
+		SELECT
+		    AL_NO,
+		    ALD_NO,
+		    MEM_ID,
+		    CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		         WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		         WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		         WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		         WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		         WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		         WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		         WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		         WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+		FROM AL_DETAIL
+		WHERE MEM_ID = #{userId}
+		  AND ALDT_CODE = 'REFERENCE'), 
+          
+          APPROVAL AS ( SELECT AP_NO
+		                         , AD_NO
+		                         , AD_COMMENT
+		                         , AD_RD
+		                         , AD_AD
+		                         , MEM_ID
+		                         , APRVL_TYPE_CODE
+		                         , APRVL_STATE_CODE
+		                    FROM APRVL
+		                   WHERE MEM_ID =  #{userId}
+                             AND APRVL_STATE_CODE = 'COMPLETE')
+		SELECT B.*
+		  FROM ( SELECT ROWNUM RNUM, A.*
+		            FROM( SELECT  AD.AD_NO
+		                      , AD_TITLE
+		                      , MEM.MEM_NAME AS MEM_ID
+		                      , AD_DATE
+		                      , AD_FINISH_DATE
+		                      , DF.DF_NAME AS DF_NAME
+		                      , DT.ALDT_CODE AS ALDT_NAME
+		                      , AD_JG_YN
+		                      , AD_DG_YN
+		                      , AD_HG_YN
+		                      , AD_DEL
+		                      , AD.AL_NO
+		                      , AD.DF_NO
+		                      , DS_CODE
+		                      , AP.APRVL_STATE_CODE
+		              FROM APRVL_DOC AD LEFT OUTER JOIN DOC_FORM DF ON (AD.DF_NO = DF.DF_NO)
+		                                LEFT OUTER JOIN MEMBER MEM ON (AD.MEM_ID = MEM.MEM_ID)
+		                                LEFT OUTER JOIN DETAIL DT ON (AD.AL_NO = DT.AL_NO)
+		                                LEFT OUTER JOIN APPROVAL AP ON(AP.AD_NO = AD.AD_NO) 
+		             WHERE DS_CODE IN ('COMPLETE')
+		               AND AD_DEL = 'N'
+		           	   AND DT.MEM_ID = #{userId}
+		           	   AND AP.APRVL_STATE_CODE = 'COMPLETE'
+		           	   ORDER BY AD.AD_NO DESC) A
+		   <include refid="searchFrag" /> ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<!-- 회람/참조 끝 -->
+	
+	
+	<!-- 반려 OK -->
+	<select id="selectInBoxReturnListCount" parameterType="PagingVO" resultType="int">
+		WITH DETAIL AS (
+		SELECT
+		    AL_NO,
+		    ALD_NO,
+		    MEM_ID,
+		    CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		         WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		         WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		         WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		         WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		         WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		         WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		         WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		         WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+		FROM AL_DETAIL
+		WHERE MEM_ID = #{userId}
+		  AND ALDT_CODE ='REUTRN')
+		    SELECT COUNT(*)     
+		      FROM (SELECT  AD_NO
+		                  , AD_TITLE
+		                  , MEM.MEM_NAME AS MEM_ID
+		                  , AD_DATE
+		                  , AD_FINISH_DATE
+		                  , DF.DF_NAME AS DF_NAME
+		                  , DT.ALDT_CODE AS ALDT_NAME
+		                  , AD_JG_YN
+		                  , AD_DG_YN
+		                  , AD_HG_YN
+		                  , AD_DEL
+		                  , AD.AL_NO
+		                  , AD.DF_NO
+		                  , DS_CODE
+		          FROM APRVL_DOC AD LEFT OUTER JOIN DOC_FORM DF ON (AD.DF_NO = DF.DF_NO)
+		                            LEFT OUTER JOIN MEMBER MEM ON (AD.MEM_ID = MEM.MEM_ID)
+		                            LEFT OUTER JOIN DETAIL DT ON (AD.AL_NO = DT.AL_NO)
+				  WHERE DS_CODE IN('RETURN') 
+		            AND MEM.MEM_ID = #{userId}
+		            AND AD_DEL = 'N' ) A
+		     <include refid="searchFrag" />
+	</select>
+	<select id="selectInBoxReturnList" parameterType="PagingVO" resultType="InBoxVO">
+		WITH DETAIL AS (
+		SELECT
+		    AL_NO,
+		    ALD_NO,
+		    MEM_ID,
+		    CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		         WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		         WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		         WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		         WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		         WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		         WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		         WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		         WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		         WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+		FROM AL_DETAIL
+		WHERE MEM_ID = #{userId}
+		  AND ALDT_CODE ='REUTRN')
+		SELECT B.*
+		  FROM ( SELECT ROWNUM RNUM, A.*
+		            FROM( SELECT  AD_NO
+		                      , AD_TITLE
+		                      , MEM.MEM_NAME AS MEM_ID
+		                      , AD_DATE
+		                      , AD_FINISH_DATE
+		                      , DF.DF_NAME AS DF_NAME
+		                      , DT.ALDT_CODE AS ALDT_NAME
+		                      , AD_JG_YN
+		                      , AD_DG_YN
+		                      , AD_HG_YN
+		                      , AD_DEL
+		                      , AD.AL_NO
+		                      , AD.DF_NO
+		                      , DS_CODE
+		              FROM APRVL_DOC AD LEFT OUTER JOIN DOC_FORM DF ON (AD.DF_NO = DF.DF_NO)
+		                                LEFT OUTER JOIN MEMBER MEM ON (AD.MEM_ID = MEM.MEM_ID)
+		                                LEFT OUTER JOIN DETAIL DT ON (AD.AL_NO = DT.AL_NO)
+		             WHERE DS_CODE IN('RETURN') 
+		               AND MEM.MEM_ID = #{userId}
+		               AND AD_DEL = 'N' 
+		               ORDER BY AD_NO DESC) A
+		   <include refid="searchFrag" /> ) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<!-- 반려 끝 -->
+</mapper>

@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.elecapproval.dao.ApprovalDocCommonDAO">
+
+<!-- 문서양식 분류 코드 리스트 -->
+	<select id="selectDocTypeList" resultType="DocumentsVO">
+		SELECT DOC_TYPE_CODE 
+		       , DOC_TYPE_NAME
+		  FROM DOC_TYPE_CODE
+		 ORDER BY DOC_TYPE_CODE
+	</select>
+	
+<!-- 문서양식 리스트 -->
+	<select id="selectDocFormList" parameterType="DocumentsVO" resultType="DocumentsVO">
+		WITH PRES AS (
+		    SELECT CODE, CODE_NAME CNAME
+		      FROM COMMON_CODE 
+		     WHERE GROUP_CODE = 'PRES'
+		)
+		SELECT
+		      DFORM.DOC_TYPE_CODE,
+		      TCODE.DOC_TYPE_NAME,
+		      DF_NO,
+		      DF_NAME,
+		      DF_CONTENT,
+		      DF_USE_YN,
+		      DFORM.DOC_ALIAS_CODE,
+		      NVL(ACODE.DOC_ALIAS, ' '),
+		      SCU_CODE,
+		      PRES_CODE,
+		      PRES.CNAME PRES_NAME,
+		      NVL(DF_DESCRIPTION, ' '),
+		      AL_CODE
+		  FROM DOC_FORM DFORM
+		       LEFT OUTER JOIN DOC_ALIAS_CODE ACODE ON (DFORM.DOC_ALIAS_CODE = ACODE.DOC_ALIAS_CODE)
+		       , DOC_TYPE_CODE TCODE
+		       , PRES
+		 WHERE DFORM.DOC_TYPE_CODE = TCODE.DOC_TYPE_CODE
+		   AND TCODE.DOC_TYPE_CODE = #{docTypeCode}
+		   AND PRES.CODE = PRES_CODE
+		   AND DF_USE_YN = 'Y'
+		 ORDER BY DF_NO
+	</select>	
+
+<!-- 문서양식  -->
+	<select id="selectDocForm" parameterType="DocumentsVO" resultType="DocumentsVO">
+		WITH PRES AS (
+		    SELECT CODE, CODE_NAME CNAME
+		      FROM COMMON_CODE 
+		     WHERE GROUP_CODE = 'PRES'
+		)
+		SELECT
+		      DFORM.DOC_TYPE_CODE,
+		      TCODE.DOC_TYPE_NAME,
+		      DF_NO,
+		      DF_NAME,
+		      DF_CONTENT,
+		      DF_USE_YN,
+		      DFORM.DOC_ALIAS_CODE,
+		      NVL(ACODE.DOC_ALIAS, ' '),
+		      SCU_CODE,
+		      PRES_CODE,
+		      PRES.CNAME PRES_NAME,
+		      NVL(DF_DESCRIPTION, ' '),
+		      AL_CODE
+		  FROM DOC_FORM DFORM
+		       LEFT OUTER JOIN DOC_ALIAS_CODE ACODE ON (DFORM.DOC_ALIAS_CODE = ACODE.DOC_ALIAS_CODE)
+		       , DOC_TYPE_CODE TCODE
+		       , PRES
+		 WHERE DFORM.DOC_TYPE_CODE = TCODE.DOC_TYPE_CODE
+		   AND PRES.CODE = PRES_CODE
+		   AND DF_NO = #{dfNo}
+		 ORDER BY DF_NO
+	</select>	
+	
+<!-- 자주 쓰는 결재선 리스트 조회 -->
+	<select id="selectApprovalLineList" parameterType="ApprovalLineVO" resultType="ApprovalLineVO">
+		SELECT AL_NO
+		       , AL_NAME
+		       , MEM_ID
+		       , AL_CODE
+		FROM APRVL_LINE
+		WHERE MEM_ID = #{memId}
+		  AND AL_SAVE = 'Y'
+		  
+	</select>
+
+<!-- 자주 쓰는 결재선 상세 조회 -->
+	<resultMap type="ApprovalLineVO" id="lineDetailMap" autoMapping="true">
+		<id property="alNo" column="AL_NO"/>
+		<collection property="lineDetailList" javaType="java.util.List" ofType="LineDetailVO" autoMapping="true">
+			<result property="memId" column="DETAIL_MEMID"/>
+			<result property="memName" column="DETAIL_MEMNAME"/>
+			<result property="deptName" column="DETAIL_DEPTNAME"/>
+			<result property="psName" column="DETAIL_PSNAME"/>
+		</collection>
+	</resultMap>
+	<select id="selectApprovalLine" parameterType="ApprovalLineVO" resultMap="lineDetailMap">
+		WITH LINEMEMBER AS (
+		    SELECT DETAIL.AL_NO
+		           , ALD_NO
+		           , DETAIL.MEM_ID
+		           , MEMBER.MEM_NAME
+		           , MEMBER.DEPT_NAME
+		           , MEMBER.PS_NAME
+		      FROM AL_DETAIL DETAIL, V_MEMBER MEMBER
+		     WHERE DETAIL.MEM_ID = MEMBER.MEM_ID
+		       AND AL_NO = #{alNo}
+		     ORDER BY ALD_NO 
+		)
+		SELECT LINE.AL_NO
+		       , NVL(AL_NAME, '이름없음') AL_NAME
+		       , AL_SAVE
+		       , LINE.MEM_ID
+		       , MEMBER.MEM_NAME
+		       , AL_CODE
+		       , DETAIL.MEM_ID DETAIL_MEMID
+		       , LINEMEMBER.MEM_NAME DETAIL_MEMNAME
+		       , LINEMEMBER.DEPT_NAME DETAIL_DEPTNAME
+		       , LINEMEMBER.PS_NAME DETAIL_PSNAME
+		       , ALDT_CODE
+		  FROM APRVL_LINE LINE , AL_DETAIL DETAIL, MEMBER, LINEMEMBER
+		 WHERE LINE.AL_NO = DETAIL.AL_NO
+		   AND LINE.MEM_ID = MEMBER.MEM_ID
+		   AND DETAIL.MEM_ID = LINEMEMBER.MEM_ID
+		   AND AL_SAVE = 'Y'
+		   AND LINE.AL_NO = #{alNo}		
+	</select>
+
+<!-- 결재 문서 한건에 대한 결재라인 조회 -->
+
+	<resultMap type="ApprovalLineVO" id="lineMap" autoMapping="true">
+		<id property="alNo" column="AL_NO"/>
+		<collection property="lineDetailList" javaType="java.util.List" ofType="LineDetailVO">
+			<result property="alNo" column="AL_NO"/>
+			<result property="aldNo" column="ALD_NO" />
+			<result property="memId" column="MEM_ID"/>
+			<result property="memName" column="MEM_NAME"/>
+			<result property="deptName" column="DEPT_NAME"/>
+			<result property="psName" column="PS_NAME"/>
+			<result property="memSignImg" column="MEM_SIGN_IMG"/>
+			<result property="aldtCode" column="ALDT_CODE"/>
+			<result property="adAd" column="AD_AD"/>
+			<result property="aprvlTypeCode" column="APRVL_TYPE_CODE"/>
+			<result property="aprvlStateCode" column="APRVL_STATE_CODE"/>
+		</collection>
+	</resultMap>
+	<select id="getApprovalLine" parameterType="ApprovalDocVO" resultMap="lineMap">
+		WITH DOC AS (
+		    SELECT AL_NO ALNO 
+		      FROM APRVL_DOC
+		     WHERE AD_NO = #{adNo}
+		)
+		 SELECT LINE.AL_NO
+		 		, DOC.ALNO AL_NO
+		        , AL_CODE
+		        
+		        , DETAIL.AL_NO
+		        , DETAIL.ALD_NO
+		        , DETAIL.MEM_ID
+		        , MEMBER.MEM_NAME
+		        , MEMBER.DEPT_NAME
+		        , MEMBER.PS_NAME
+		        , MEMBER.MEM_SIGN_IMG
+		        , DETAIL.ALDT_CODE
+		        
+		        , APRVL.AD_RD
+		        , APRVL.AD_AD
+		        , APRVL.APRVL_TYPE_CODE
+		        , APRVL.APRVL_STATE_CODE
+		  FROM APRVL_LINE LINE, DOC, AL_DETAIL DETAIL, V_MEMBER MEMBER, APRVL
+		 WHERE LINE.AL_NO = DOC.ALNO
+		   AND LINE.AL_NO = DETAIL.AL_NO
+		   AND DETAIL.MEM_ID = MEMBER.MEM_ID
+		   AND APRVL.AD_NO = #{adNo}
+		   AND APRVL.MEM_ID = DETAIL.MEM_ID
+		 ORDER BY DETAIL.ALD_NO
+	</select>
+
+<!-- 결재 프로세스 -->
+	<update id="signApprovalDoc" parameterType="ApprovalVO">
+		UPDATE APRVL
+		   SET
+			  AD_COMMENT         = #{adComment}
+			  , AD_AD            = SYSDATE
+			  , APRVL_TYPE_CODE  = #{aprvlTypeCode}
+			  , APRVL_STATE_CODE = #{aprvlStateCode}
+		 WHERE AD_NO = #{adNo}
+		   AND MEM_ID = #{memId}
+	</update>
+	
+	<!-- 다음 결재자 아이디 -->
+	<select id="selectNextMemId" parameterType="ApprovalVO" resultType="String">
+		SELECT AL_DETAIL.MEM_ID
+		  FROM AL_DETAIL, (
+		        SELECT  AL_DETAIL.AL_NO
+		                , AL_DETAIL.ALD_NO
+		          FROM AL_DETAIL , APRVL_DOC
+		         WHERE AL_DETAIL.MEM_ID = #{memId}
+		           AND APRVL_DOC.AD_NO = #{adNo}
+		           AND AL_DETAIL.AL_NO = APRVL_DOC.AL_NO
+		       ) A
+		 WHERE AL_DETAIL.AL_NO = A.AL_NO
+		   AND A.ALD_NO +1 = AL_DETAIL.ALD_NO
+		   AND AL_DETAIL.ALDT_CODE = 'APPROVAL'
+	</select>
+
+	<!-- 다음 결재자 없으면 결재문서 상태 : 결재완료 -->
+	<update id="updateApprovalDocStatus" parameterType="ApprovalDocVO">
+		UPDATE APRVL_DOC
+		   SET DS_CODE = #{dsCode}
+		   		<if test="dsCode != null and @org.apache.commons.lang3.StringUtils@isNotBlank(dsCode) 
+		   				and 'COMPLETE'.equals(dsCode)">
+			       , AD_FINISH_DATE = SYSDATE
+		   		</if>
+		 WHERE AD_NO = #{adNo}
+	</update>
+
+<!-- 전결인 경우최종 결재자까지 모두 결재완료처리 : 결재자는 처리된 상태에서 나머지 결재자(null)만 처리 -->
+	<update id="approvalAllComplete" parameterType="ApprovalVO">
+				UPDATE APRVL
+		   SET AD_AD = SYSDATE
+		       , APRVL_TYPE_CODE = 'ALLOK'
+		       , APRVL_STATE_CODE = 'COMPLETE'
+		 WHERE AD_NO = #{adNo}
+		   AND (APRVL_TYPE_CODE NOT IN ('OK', 'ALLOK') OR APRVL_STATE_CODE NOT IN ('COMPLETE'))
+           and mem_id not in (
+			           SELECT MEM_ID 
+			             FROM AL_DETAIL
+			            WHERE AL_NO IN (SELECT AL_NO FROM APRVL_DOC WHERE AD_NO = #{adNo})
+			              AND ALDT_CODE = 'REFERENCE'
+           )
+	</update>
+
+
+
+
+
+
+
+</mapper>

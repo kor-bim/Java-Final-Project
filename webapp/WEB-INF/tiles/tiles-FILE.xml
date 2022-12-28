@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd" >
+<tiles-definitions>
+
+<!-- 파일 left Menu -->
+	<definition name="fileLeft" extends="parent">
+		<put-attribute name="leftMenu" value="/includee/leftMenus/fileLeftMenu.jsp" />
+	</definition>
+	
+	<!-- 	파일보관함   -->
+	<definition name="fileBox/*" extends="fileLeft">
+		<put-attribute name="content" value="/WEB-INF/views/fileBox/{1}.jsp" />
+	</definition>
+	
+</tiles-definitions>

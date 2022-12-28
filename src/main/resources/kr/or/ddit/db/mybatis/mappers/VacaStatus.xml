@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.hr.vacation.dao.VacationStatusDAO">
+
+	<sql id="whereClause">
+		<trim prefix="WHERE" prefixOverrides="AND">
+			<if test="searchKeyword!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchKeyword)">
+				AND INSTR(MEM_NAME, #{searchKeyword}) > 0
+			</if>
+		</trim>
+	</sql>
+	
+	<resultMap type="VacaStatusVO" id="VacaStatusVO" autoMapping="true">
+		<id property="memId" column="MEM_ID" />
+		<collection property="vacaStatList" javaType="java.util.List" ofType="VacaStatusVO" autoMapping="true">
+			<id property="vtCode" column="VT_CODE" />
+		</collection>
+	</resultMap>
+	<select id="selectTotalStatus" parameterType="vacaStatusVO" resultMap="VacaStatusVO">
+		SELECT B.*
+			FROM (
+				SELECT ROWNUM RNUM, A.*
+					FROM (
+						SELECT MEMBER.MEM_ID             MEM_ID
+								, MEMBER.MEM_NAME
+								, TO_CHAR(TO_DATE(MEMBER.MEM_HDATE),'YYYY-MM-DD') MEM_HDATE
+								, MEMBER.DEPT_CODE
+								, MEMBER.DEPT_NAME
+							
+								, VT.VT_CODE              VT_CODE
+								, VT.VT_NAME              VT_NAME 
+								, NVL(HOLD.VACA_INDAY,0)  VACA_INDAY
+								, NVL(HOLD.VACA_RMDAY,0)  VACA_RMDAY
+								, NVL(HOLD.VACA_YEAR, #{searchYear})     VACA_YEAR
+								
+								, NVL(HOLD.VACA_INDAY,0)-NVL(HOLD.VACA_RMDAY,0) USE_CNT
+						  FROM VACA_TYPE VT
+							   LEFT OUTER JOIN V_MEMBER MEMBER ON (1=1)
+							   LEFT OUTER JOIN VACA_HOLD HOLD ON (VT.VT_CODE = HOLD.VT_CODE AND MEMBER.MEM_ID = HOLD.MEM_ID)
+						 WHERE VT.VT_USE_YN = 'Y'
+					     ORDER BY VT.VT_CODE
+					) A
+					WHERE VACA_YEAR = #{searchYear}
+			) B
+	</select>
+	
+	<select id="selectVacaStat" parameterType="VacaStatusVO" resultMap="VacaStatusVO">
+		SELECT DISTINCT(VACA_HOLD.MEM_ID)
+		       , MEMBER.MEM_NAME
+		       , VACA_INDAY
+		       , VACA_RMDAY
+		       , VACA_HOLD.VT_CODE
+		       , VACA_TYPE.VT_NAME
+		       , NVL(VACA_HOLD.VACA_YEAR, #{searchYear})     VACA_YEAR
+		       , MEMBER.PS_NAME
+		  FROM VACA_HOLD, V_MEMBER MEMBER, VACA_TYPE
+		 WHERE VACA_YEAR = #{searchYear}
+		   AND VACA_TYPE.VT_CODE IN (1,2)
+		   AND VACA_HOLD.MEM_ID = MEMBER.MEM_ID
+		   AND VACA_HOLD.VT_CODE = VACA_TYPE.VT_CODE
+		   AND VACA_HOLD.MEM_ID = #{memId}
+	</select>
+	
+	<update id="updateVacaStat" parameterType="VacaStatusVO" >
+		MERGE INTO VACA_HOLD A 
+			USING (
+				<foreach collection="vacaStatList" item="pvaca" separator="union">
+				SELECT 
+						#{memId}              AS MEMID
+						, #{pvaca.vtCode}     AS CODE
+						, #{pvaca.vacaInday}  AS INDAY
+						, #{searchYear}       AS PYEAR
+				 FROM SYS.DUAL 
+				 </foreach>
+			) B ON (A.MEM_ID = B.MEMID AND A.VT_CODE = B.CODE AND A.VACA_YEAR = B.PYEAR)
+			WHEN MATCHED THEN 
+				UPDATE SET
+					VACA_INDAY = B.INDAY
+					, VACA_RMDAY = VACA_RMDAY + (B.INDAY - VACA_INDAY)
+			WHEN NOT MATCHED THEN
+				INSERT (
+					    MEM_ID,
+					    VT_CODE,
+					    VACA_YEAR,
+					    VACA_INDAY,
+					    VACA_RMDAY
+						) 
+				VALUES (
+					    B.MEMID,
+					    B.CODE,
+					    B.PYEAR,
+					    B.INDAY,
+					    B.INDAY
+						)
+	</update>
+
+	<select id="selectVacationList" parameterType="VacaRecVO" resultType="VacaRecVO">
+		WITH ADOC AS (
+		    SELECT AD_NO ADNO
+		           , DS_CODE DSCODE
+		           , TO_CHAR(AD_DATE, 'YYYY-MM-DD') AD_DATE
+		      FROM APRVL_DOC
+		     WHERE DF_NO = 16
+               AND MEM_ID = #{memId, jdbcType=VARCHAR}
+		),
+		APPROVALTYPE AS (
+		    SELECT CODE CODE
+		         , CODE_NAME CNAME
+		      FROM COMMON_CODE
+		     WHERE GROUP_CODE = 'DOC_STATE'
+		),
+		MEM AS (
+		    SELECT MEM_ID MEMID
+		         , MEM_NAME
+		         , DEPT_CODE
+		      FROM MEMBER
+		),
+		DEPT AS (
+		    SELECT DEPT_CODE DECODE
+		         , DEPT_NAME DENAME
+		      FROM DEPARTMENT
+		)
+		SELECT
+		      MEM.MEM_NAME MEM_NAME,
+		      MEM.DEPT_CODE,
+		      DEPT.DENAME DEPT_NAME,
+		      VACA_NO,
+		      TO_CHAR(VACA_BEGIN, 'YYYY-MM-DD') VACA_BEGIN,
+		      TO_CHAR(VACA_END, 'YYYY-MM-DD') VACA_END,
+		      VACA_END-VACA_BEGIN+1 DAYS,
+		      REC.VT_CODE,
+		      VT.VT_NAME,
+		      REC.MEM_ID,
+		      REC.AD_NO,
+		      ADOC.DSCODE,
+		      VACA_HALF,
+		      APPROVALTYPE.CNAME DS_NAME,
+		      AD_NO,
+      		  ADOC.AD_DATE
+		FROM VACA_REC REC, VACA_TYPE VT, ADOC, APPROVALTYPE, MEM, DEPT
+		WHERE REC.VT_CODE = VT.VT_CODE
+		  AND REC.AD_NO = ADOC.ADNO
+		  AND ADOC.DSCODE = APPROVALTYPE.CODE
+		  AND REC.MEM_ID = MEM.MEMID
+		  AND MEM.DEPT_CODE = DEPT.DECODE
+	</select>
+	
+	<select id="selectStatusList" parameterType="VacaStatusVO" resultType="VacaStatusVO">
+		SELECT
+		    MEM_ID,
+		    VACA_HOLD.VT_CODE,
+		    VACA_YEAR,
+		    VACA_INDAY,
+		    VACA_RMDAY,
+		    VT.VT_NAME
+		FROM VACA_HOLD, VACA_TYPE VT
+		WHERE VACA_HOLD.VT_CODE = VT.VT_CODE
+		  AND MEM_ID = #{memId, jdbcType=VARCHAR}
+	</select>
+	
+	<select id="selectVacaAllList" parameterType="VacaRecVO" resultType="VacaRecVO">
+		WITH ADOC AS (
+		    SELECT AD_NO ADNO
+		           , DS_CODE DSCODE
+		           , TO_CHAR(AD_DATE, 'YYYY-MM-DD') AD_DATE
+		      FROM APRVL_DOC
+		     WHERE DF_NO = 16
+		),
+		APPROVALTYPE AS (
+		    SELECT CODE CODE
+		         , CODE_NAME CNAME
+		      FROM COMMON_CODE
+		     WHERE GROUP_CODE = 'DOC_STATE'
+		),
+		MEM AS (
+		    SELECT MEM_ID MEMID
+		         , MEM_NAME
+		         , DEPT_CODE
+		      FROM MEMBER
+		),
+		DEPT AS (
+		    SELECT DEPT_CODE DECODE
+		         , DEPT_NAME DENAME
+		      FROM DEPARTMENT
+		)
+		SELECT
+		      MEM.MEM_NAME MEM_NAME,
+		      MEM.DEPT_CODE,
+		      DEPT.DENAME DEPT_NAME,
+		      VACA_NO,
+		      TO_CHAR(VACA_BEGIN, 'YYYY-MM-DD') VACA_BEGIN,
+		      TO_CHAR(VACA_END, 'YYYY-MM-DD') VACA_END,
+		      VACA_END-VACA_BEGIN+1 DAYS,
+		      REC.VT_CODE,
+		      VT.VT_NAME,
+		      REC.MEM_ID,
+		      REC.AD_NO,
+		      ADOC.DSCODE,
+		      VACA_HALF,
+		      APPROVALTYPE.CNAME DS_NAME,
+		      AD_NO,
+      		  ADOC.AD_DATE
+		FROM VACA_REC REC, VACA_TYPE VT, ADOC, APPROVALTYPE, MEM, DEPT
+		WHERE REC.VT_CODE = VT.VT_CODE
+		  AND REC.AD_NO = ADOC.ADNO
+		  AND ADOC.DSCODE = APPROVALTYPE.CODE
+		  AND REC.MEM_ID = MEM.MEMID
+		  AND MEM.DEPT_CODE = DEPT.DECODE
+	</select>
+
+</mapper>

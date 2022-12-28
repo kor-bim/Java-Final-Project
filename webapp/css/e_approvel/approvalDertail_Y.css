@@ -1,0 +1,1695 @@
+.setting_field.appr_write .set_input>li>div.contents {
+	margin: 0
+}
+
+.blind {
+	display: block;
+	overflow: hidden;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 0;
+	height: 0;
+	border: 0;
+	background: 0;
+	font-size: 0;
+	line-height: 0
+}
+
+span {
+	display: inline-block;
+	width: 160px
+}
+
+span {
+	width: auto
+}
+
+.docu-common-wrap .contents dl, .docu-common-wrap .contents ul,
+	.docu-common-wrap .contents ol, .docu-common-wrap .contents menu,
+	.docu-common-wrap .contents li {
+	list-style: inherit;
+}
+
+.docu-common-wrap .contents div {
+	display: block;
+}
+
+.docu-common-wrap .contents dl {
+	display: block;
+	margin-top: 1em;
+	margin-bottom: 1em;
+	margin-left: 0;
+	margin-right: 0;
+}
+
+.docu-common-wrap .contents dt {
+	display: block;
+}
+
+.docu-common-wrap .contents dd {
+	display: block;
+	margin-left: 40px;
+}
+
+.docu-common-wrap .contents em {
+	font-style: italic;
+}
+
+.docu-common-wrap .contents h1 {
+	display: block;
+	font-size: 2em;
+	margin-top: 0.67em;
+	margin-bottom: 0.67em;
+	margin-left: 0;
+	margin-right: 0;
+	font-weight: bold;
+}
+
+.docu-common-wrap .contents h2 {
+	
+}
+
+.docu-common-wrap .contents h3 {
+	
+}
+
+.docu-common-wrap .contents h4 {
+	
+}
+
+.docu-common-wrap .contents h5 {
+	
+}
+
+.docu-common-wrap .contents h6 {
+	
+}
+
+.docu-common-wrap .contents li {
+	display: list-item;
+}
+
+.docu-common-wrap .contents ol {
+	display: block;
+	list-style-type: decimal;
+	margin-top: 1em;
+	margin-bottom: 1em;
+	margin-left: 0;
+	margin-right: 0;
+	padding-left: 40px;
+}
+
+.docu-common-wrap .contents p {
+	
+}
+
+.docu-common-wrap .contents table {
+	
+}
+
+.docu-common-wrap .contents tbody {
+	
+}
+
+.docu-common-wrap .contents td {
+	font-size: 16px;
+	border: 1px solid;
+	color: #000;
+	word-break: break-all;
+}
+
+.docu-common-wrap .contents #style_free td {
+	border: none;
+}
+
+.docu-common-wrap .contents tfoot {
+	
+}
+
+.docu-common-wrap .contents th {
+	
+}
+
+.docu-common-wrap .contents thead {
+	
+}
+
+.docu-common-wrap .contents tr {
+	
+}
+
+.docu-common-wrap .contents u {
+	
+}
+
+.docu-common-wrap .contents ul {
+	display: block;
+	list-style-type: disc;
+	margin-top: 1em;
+	margin-bottom: 1em;
+	margin-left: 0;
+	margin-right: 0;
+	padding-left: 40px;
+}
+
+.header_title {
+	margin-top: 20px;
+	font-size: 20px;
+}
+
+caption {
+	overflow: hidden;
+	width: 0;
+	height: 0;
+	font-size: 0;
+	line-height: 0
+}
+
+.tableType02 {
+	width: 100%;
+	border-top: 1px solid #cdcdcd
+}
+
+.tableType02 th {
+	padding: 14px 14px;
+	border-bottom: 1px solid #dedede;
+	background-color: #f9f9f9;
+	color: #333;
+	font-weight: 400
+}
+
+.tableType02 td {
+	padding: 12px 0 12px 14px;
+	border-bottom: 1px solid #dedede
+}
+
+.tableType02 .center {
+	padding-left: 0;
+	text-align: center
+}
+
+.tableType02.date input[type=text] {
+	width: 35%
+}
+
+.tableType02.date .text {
+	padding-bottom: 10px
+}
+
+.send-title+.content_
+
+
+.tableType02 th {
+	text-align: left;
+	padding: 7px 14px
+}
+
+.send-title+.content_inbox
+
+.docu-common-wrap .contents .orgin-area {
+	padding-bottom: 0;
+}
+
+.orgin-area table, .docu-common-wrap .contents .orgin-area table {
+	table-layout: fixed;
+	border-collapse: collapse;
+	width: 100%;
+	border: 1px solid #cdcdcd;
+	color: #666;
+}
+
+.orgin-area table td {
+	border-right: 1px solid #cdcdcd;
+	border-bottom: 1px solid #cdcdcd;
+	padding-left: 10px;
+}
+
+.docu-common-wrap .contents .orgin-area table td {
+	border: 1px solid #cdcdcd;
+	padding-left: 10px;
+	font-size: 14px;
+	color: #666;
+}
+
+.orgin-area table td .name, .docu-common-wrap .contents .orgin-area table td .name
+	{
+	margin-right: 12px;
+}
+
+.orgin-area table .bbn>td, .docu-common-wrap .contents .orgin-area table .bbn>td
+	{
+	border-bottom: 0;
+}
+
+.orgin-area table .header, .docu-common-wrap .contents .orgin-area table .header
+	{
+	padding: 10px 0;
+	width: 134px;
+	font-weight: bold;
+	text-align: center;
+}
+
+.docu-common-wrap .contents .view-in-view {
+	margin-left: -25px;
+	width: calc(100% + 50px);
+	line-height: normal;
+	font-size: 14px;
+}
+
+.docu-common-wrap .contents .view-in-view h2 {
+	padding: 0;
+}
+
+.docu-common-wrap .contents.circulation {
+	padding-bottom: 0;
+}
+
+.orgin-area h3 {
+	margin-top: 20px;
+	font-size: 22px;
+	font-weight: normal;
+	color: #333;
+}
+
+.orgin-area .contents {
+	margin-top: 20px;
+	color: #333;
+	font-size: 16px;
+	line-height: 1.8;
+}
+
+.docu-common-wrap .contents .orgin-area .contents {
+	margin-top: 20px;
+	padding: 0;
+	color: #333;
+	font-size: 16px;
+	line-height: 1.8;
+	border-bottom: 0;
+}
+
+}
+.tableType02 td {
+	padding: 10px 0 10px 14px
+}
+
+.tableType02 td.bdr_1
+
+.tableType02 th.bdr_1 {
+	border-right: 1px solid #dedede
+}
+
+.tableType02 .bdl_1 {
+	border-left: 1px solid #dedede
+}
+
+.tableType02 th {
+	padding: 9px 10px 9px 15px;
+	text-align: left
+}
+
+.tableType02 input[type=text] {
+	width: 55%;
+	height: 26px;
+	padding: 0 0 0 5px
+}
+
+.approval-wrap .tableType02 {
+	margin-bottom: 50px;
+	table-layout: fixed;
+	border-left: 1px solid #cdcdcd;
+	border-right: 1px solid #cdcdcd;
+}
+
+.approval-wrap .tableType02 th {
+	padding: 12px 0;
+	border-bottom: 1px solid #ececec;
+	border-right: 1px solid #ececec;
+}
+
+.approval-wrap .tableType02 td {
+	padding: 2px 0 2px 10px;
+	border-bottom: 1px solid #ececec;
+	border-right: 1px solid #ececec;
+}
+
+.approval-wrap .tableType02 tr td:last-child {
+	border-right: none;
+}
+
+.approval-wrap .tableType02 .write-select, .approval-wrap .write_input .db-choice .write-select
+	{
+	height: 30px;
+	padding-left: 10px;
+	border: 1px solid #cfcfcf;
+}
+
+.approval-wrap .tableType02 tr:last-child>th, .approval-wrap .tableType02 tr:last-child>td
+	{
+	border-bottom: 1px solid #cdcdcd;
+}
+
+.approval-wrap .tableType02.db-search {
+	margin: 20px 0;
+}
+
+.approval-wrap .cal_table1 {
+	border-top: 1px solid #cdcdcd;
+	border-left: 1px solid #cdcdcd;
+	border-right: 1px solid #cdcdcd;
+	table-layout: fixed;
+}
+
+.approval-wrap .cal_table1 .sign, .approval-wrap .cal_table1 .agree,
+	.approval-wrap .cal_table1 .confer, .approval-wrap .cal_table1 .apply {
+	border-bottom: 0;
+	height: 100%;
+	empty-cells: show;
+}
+
+.approval-wrap .cal_table1 .confer .stamp {
+	height: 100%:
+}
+
+.approval-wrap .cal_table1 .sign:first-child, .approval-wrap .cal_table1 .agree:first-child,
+	.approval-wrap .cal_table1 .confer:first-child, .approval-wrap .cal_table1 .apply:first-child
+	{
+	border-bottom: 0;
+}
+
+.approval-wrap .cal_table1 .sign div, .approval-wrap .cal_table1 .agree div,
+	.approval-wrap .cal_table1 .confer div, .approval-wrap .cal_table1 th div.choice
+	{
+	height: 100%;
+	width: 100%;
+	position: relative;
+	vertical-align: top
+}
+
+.approval-wrap .cal_table1.refer th {
+	
+}
+
+.approval-wrap .cal_table1 .sign table tr:last-child td {
+	border-bottom: 1px solid #cdcdcd;
+}
+
+.approval-wrap .cal_table1 .sign table:last-child tr:last-child td {
+	border-bottom: 0;
+}
+
+.approval-wrap .cal_table1 .agree table tr:last-child td {
+	height: 54px;
+}
+
+.approval-wrap .cal_table1 .confer .minus tr:last-child td {
+	border-bottom: 0;
+}
+
+.approval-wrap .cal_table1 .agree .minus tr:last-child td {
+	border-bottom: 0;
+	height: 54px;
+}
+
+.approval-wrap .cal_table1 .confer .plus tr:last-child td {
+	border-bottom: 0;
+}
+
+.approval-wrap .cal_table1 .agree .plus tr:last-child td {
+	border-bottom: 0;
+	height: 54px;
+}
+
+.approval-wrap select { /*width:140px;*/
+	width: calc(43% - 20px);
+}
+
+.approval-wrap select.view { /*width:140px;*/
+	width: calc(54% - 30px);
+}
+
+.approval-wrap .cal_table1 .spr-approval.set {
+	display: inline-block;
+	position: absolute;
+	top: 13px;
+	right: 5px;
+	z-index: 0;
+	width: 19px;
+	height: 19px;
+	background-position: -1px -1px;
+	cursor: pointer;
+}
+
+.approval-wrap .cal_table1 .agree td {
+	height: 53px; /*padding-left: 12px;text-align: left;*/
+}
+
+.approval-wrap .cal_table1 .agree table, .approval-wrap .cal_table1 .confer table,
+	.approval-wrap .cal_table1 .apply table {
+	width: 100%;
+	table-layout: fixed;
+	height: 100%;
+}
+
+.approval-wrap .cal_table1 .agree table:first-child tr:last-of-type td {
+	height: 54px;
+	border-bottom: 0;
+}
+
+.approval-wrap .cal_table1 .agree table:first-child tr:nth-of-type(3) td
+	{
+	height: 54px;
+}
+
+.approval-wrap .cal_table1 .confer table:first-child tr:last-of-type td,
+	.approval-wrap .cal_table1 .apply table:first-child tr:last-of-type td
+	{
+	border-bottom: 0;
+}
+
+.approval-wrap .cal_table1.refer td, .approval-wrap .cal_table1.reception td,
+	.approval-wrap .cal_table1.refer2 td {
+	padding: 8px 0 8px 12px;
+	text-align: left;
+}
+
+.approval-wrap .cal_table1.refer th, .approval-wrap .cal_table1.refer td,
+	.approval-wrap .cal_table1.reception th, .approval-wrap .cal_table1.reception td,
+	.approval-wrap .cal_table1.refer2 th, .approval-wrap .cal_table1.refer2 td
+	{
+	vertical-align: middle;
+	border-bottom: 1px solid #cdcdcd;
+}
+
+.approval-wrap .cal_table1 .refer-add {
+	width: 128px;
+	padding-left: 12px;
+	height: 28px;
+	border: 1px solid #cfcfcf;
+	background: #f7f7f7;
+}
+
+.approval-wrap .cal_table1.reception, .approval-wrap .cal_table1.refer2
+	{
+	border-top: 0;
+	border-bottom: 1px solid #cdcdcd
+}
+
+.approval-wrap .cal_table1.reception.margin {
+	margin-top: 15px;
+	border-top: 1px solid #cdcdcd;
+}
+
+.refer-list {
+	display: inline-block;
+	margin-right: 5px;
+	line-height: 2;
+}
+
+.refer-list .icon.file_delete {
+	position: relative;
+	top: -2px;
+	margin-left: 10px;
+	visibility: hidden;
+	cursor: pointer;
+}
+
+.refer-list:hover .icon.file_delete {
+	visibility: visible;
+}
+
+.approval-wrap .write_input label, .approval-wrap .write_input>p {
+	width: 80px;
+}
+
+.approval-wrap .write_input input[type="text"] {
+	padding-left: 12px;
+	height: 26px;
+	border: 1px solid #cfcfcf;
+}
+
+.approval-wrap .write_input .txt input[type="text"] {
+	width: calc(100% - 8px) !important;
+}
+
+.approval-wrap .write_input.db {
+	border-bottom: 1px solid #ececec;
+	margin-bottom: 20px;
+	padding-bottom: 20px;
+}
+
+.approval-wrap .write_input .organ li {
+	float: left;
+	width: 370px;
+	padding-bottom: 20px;
+}
+
+.approval-wrap .write_input .organ span {
+	display: inline-block;
+	width: 54px;
+}
+
+.approval-wrap .write_input .db-choice li {
+	float: left;
+	width: 444px;
+	padding-bottom: 20px;
+}
+
+.approval-wrap .write_input .db-choice select {
+	width: 80px;
+	margin-bottom: 5px;
+}
+
+.approval-wrap .write_input .db-choice li input[type="text"] {
+	width: 188px;
+	margin-bottom: 5px
+}
+
+.approval-wrap .write_input .db-choice span {
+	float: left;
+	display: inline-block;
+	width: 80px;
+}
+
+.approval-wrap .write_input .db-choice .select-wrap {
+	float: left;
+	width: 364px;
+}
+
+.approval-wrap .write_input .organ .add {
+	width: 128px;
+	margin-right: 50px;
+	padding-left: 12px;
+	height: 28px;
+	border: 1px solid #cfcfcf;
+	background: #f7f7f7;
+}
+
+.approval-wrap .write_input .organ .add-list {
+	width: 188px;
+}
+
+.approval-wrap .write_input .txt.title {
+	margin-left: 80px;
+	margin-right: 14px;
+}
+
+.approval-wrap .write_input .txt.file {
+	margin-right: 2px
+}
+
+.approval-wrap .file-list .list table .docu-link {
+	line-height: 1.8;
+	text-decoration: underline;
+	color: #2c86dc;
+}
+
+.approval-wrap.view h1 {
+	padding-bottom: 20px;
+	font-size: 32px;
+	font-weight: normal;
+	color: #333;
+	text-align: center;
+	letter-spacing: -1px;
+}
+
+.approval-wrap.view .tableType02 {
+	margin-bottom: 0;
+	border-left: 1px solid #cdcdcd;
+	border-right: 1px solid #cdcdcd;
+}
+
+.approval-wrap.view .tableType02 tr:last-child th, .approval-wrap.view .tableType02 tr:last-child td
+	{
+	border-bottom: 0
+}
+
+.approval-wrap .tableType02.account {
+	border-left: 0;
+	border-right: 0;
+}
+
+.content_inbox {
+	top: 0
+}
+
+.approval-wrap.view .tableType02.completed-table tr:last-child th,
+	.approval-wrap.view .tableType02.completed-table tr:last-child td {
+	border-bottom: 1px solid #cdcdcd !important
+}
+
+.tableType02 {
+	border: 1px solid #cdcdcd
+}
+
+.office-api--page .tableType02 th, .office-api--page .tableType02 td {
+	padding: 35px 20px;
+	text-align: left
+}
+
+.cal_table1.approve-write th, .cal_table1.approve-write td {
+	padding: 0;
+	text-align: center;
+	border-left: 1px solid #ececec;
+	border-bottom: 1px solid #ececec;
+	border-right: 1px solid #ececec;
+	border-left: 0;
+}
+
+.cal_table1.approve-write .name {
+	height: 40px;
+}
+
+.cal_table1.approve-write .team.name {
+	background: #f9f9f9
+}
+
+.cal_table1.approve-write .stamp {
+	height: 80px;
+	empty-cells: show;
+}
+
+.cal_table1.approve-write .stamp-step-num {
+	display: inline-block;
+	position: absolute;
+	left: 0;
+	top: 0;
+	font-size: 12px;
+	color: #666;
+	background: #f9f9f9;
+	width: 18px;
+	height: 18px;
+	line-height: 16px;
+	text-align: center;
+}
+
+.cal_table1.approve-write .agree .bt_left button.small-button {
+	width: 50px;
+	padding: 3px 0;
+	line-height: 14px;
+}
+
+.cal_table1.approve-write td .smaller {
+	font-size: 13px;
+}
+
+.cal_table1.approve-write td .smallest {
+	font-size: 12px;
+}
+
+.cal_table1.approve-write td {
+	word-break: break-all;
+}
+
+.cal_table1 {
+	width: 100%
+}
+
+.cal_table1.bdt {
+	border-top: 1px solid #dedede
+}
+
+.cal_table1 th {
+	padding: 6px 12px;
+	font-weight: 400;
+	background: #f9f9f9;
+	border-left: 1px solid #dedede;
+	border-bottom: 1px solid #dedede;
+	border-right: 1px solid #dedede
+}
+
+.cal_table1 {
+	table-layout: fixed
+}
+
+.insa-unit .cal_table1.bdt {
+	border-top-color: #cdcdcd
+}
+
+.insa-unit .cal_table1 th {
+	font-weight: bold
+}
+
+.insa-unit .cal_table1 th, .insa-unit .cal_table1 td {
+	padding: 14px 12px;
+	text-align: center
+}
+
+.insa-unit .cal_table1 td.disabled {
+	background-color: #F9F9F9;
+	color: #C4C4C4
+}
+
+.insa-unit .fixed-head {
+	padding: 30px 20px 0;
+	text-align: center;
+	background: #fff
+}
+
+.insa-unit .fixed-body {
+	padding: 0 20px;
+	box-sizing: content-box;
+	overflow-y: auto;
+	height: auto
+}
+
+.insa-unit .fixed-body .cal_table1 td {
+	border-color: #E6E6E6
+}
+
+.insa-unit .fixed-body .cal_table1 th, .insa-unit .fixed-body .cal_table1 tr td[rowspan],
+	.insa-unit .fixed-body .cal_table1 tr:nth-child(3n) td {
+	border-bottom-color: #cdcdcd
+}
+
+.cal_table1 tbody th {
+	text-align: left
+}
+
+.cal_table1 td {
+	padding: 6px 12px;
+	border-left: 1px solid #dedede;
+	border-bottom: 1px solid #dedede;
+	border-right: 1px solid #dedede
+}
+
+.cal_table1 th.title {
+	background: #e0e9f0;
+	font-size: 16px;
+	text-align: center
+}
+
+.cal_table1 tr td:first-child, .cal_table1 tr th:first-child {
+	border-left: 0
+}
+
+.cal_table1 tr td:last-child, .cal_table1 tr th:last-child {
+	border-right: 0
+}
+
+.cal_table1 .bt_r {
+	position: relative;
+	display: block;
+	height: 18px;
+	padding-right: 20px;
+	border: 1px solid #a5acb2
+}
+
+.cal_table1 .bt_r input {
+	border: 0
+}
+
+.cal_table1 .bt_r .icon.h_detail {
+	position: absolute;
+	top: 0;
+	right: 4px
+}
+
+.cal_table1 .bt_r .icon.tax_setting {
+	position: absolute;
+	top: 3px;
+	right: 4px
+}
+
+.cal_table1 .bt_r2 input[type=text] {
+	width: 70%
+}
+
+.cal_table1 .icon.h_del {
+	margin-top: 0
+}
+
+.cal_table1 .bdl_0 {
+	border-left: 0
+}
+
+.text100 input[type=text] {
+	width: 100%
+}
+
+input[type=text].bg {
+	background: #f3f3f3
+}
+
+.cal_sheet a, .cal_sheet button, .cal_sheet input, .cal_sheet label,
+	.cal_sheet select, .cal_sheet span {
+	vertical-align: middle
+}
+
+.cal_sheet label>input[type=text], .cal_table1 label>input[type=text] {
+	vertical-align: top
+}
+
+cal_table1 {
+	table-layout: fixed
+}
+
+.insa-unit .cal_table1.bdt {
+	border-top-color: #cdcdcd
+}
+
+.insa-unit .cal_table1 th {
+	font-weight: bold
+}
+
+.insa-unit .cal_table1 th, .insa-unit .cal_table1 td {
+	padding: 14px 12px;
+	text-align: center
+}
+
+.insa-unit .cal_table1 td.disabled {
+	background-color: #F9F9F9;
+	color: #C4C4C4
+}
+
+.insa-unit .fixed-head {
+	padding: 30px 20px 0;
+	text-align: center;
+	background: #fff
+}
+
+.insa-unit .fixed-body {
+	padding: 0 20px;
+	box-sizing: content-box;
+	overflow-y: auto;
+	height: auto
+}
+
+.insa-unit .fixed-body .cal_table1 td {
+	border-color: #E6E6E6
+}
+
+.insa-unit .fixed-body .cal_table1 th, .insa-unit .fixed-body .cal_table1 tr td[rowspan],
+	.insa-unit .fixed-body .cal_table1 tr:nth-child(3n) td {
+	border-bottom-color: #cdcdcd
+}
+
+/* .content_inbox { */
+/* 	width: 80%; */
+/* 	height: auto; */
+/* 	overflow: visible; */
+/* } */
+.content_inbox {
+	position: static;
+	overflow: visible !important;
+}
+
+.content_inbox.non-space {
+	top: 0
+}
+
+.cont_box.view, .cont_box.write {
+	min-width: 500px;
+	max-width: 1013px;
+}
+
+.cont_box {
+	min-height: 400px;
+	min-width: 500px;
+	width: 100%
+}
+
+.cont_box.board {
+	max-width: 1013px;
+	min-width: 500px
+}
+
+.cont_box.approve {
+	max-width: 1013px
+}
+
+.listbox {
+	width: 100%;
+	table-layout: fixed;
+	word-break: break-all
+}
+
+.listbox img {
+	vertical-align: middle
+}
+
+.listbox tr:hover {
+	background: #f9f9fa
+}
+
+.listbox tr td.hoverIcon {
+	padding-left: 0
+}
+
+.listbox tr .hoverIcon button {
+	display: none;
+	vertical-align: top
+}
+
+.listbox tr:hover .hoverIcon button {
+	display: inline-block
+}
+
+.listbox tr.on {
+	background: #f8f8f3
+}
+
+.listbox td {
+	padding: 11px 5px
+}
+
+.listbox td:first-child {
+	padding: 0 0 0 25px
+}
+
+.listbox td .icon.impt {
+	margin: 4px 0 0 0
+}
+
+.listbox td.name {
+	padding-right: 0;
+	color: #676767
+}
+
+.listbox td.name .in {
+	display: inline-block;
+	max-width: 100%;
+	overflow: hidden;
+	position: relative;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	cursor: pointer
+}
+
+.listbox td.title {
+	overflow: hidden
+}
+
+.listbox td.title.bold a {
+	color: #000
+}
+
+.listbox td.title .in {
+	display: block;
+	float: left;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap
+}
+
+.listbox td.date {
+	color: #888;
+	text-align: right;
+	padding-right: 20px
+}
+
+.listbox td.byte {
+	text-align: right;
+	padding-right: 20px
+}
+
+.listbox td.byte.gray {
+	color: #bdbdbd
+}
+
+.listbox td.cancel a {
+	color: #779ec0
+}
+
+.listbox .bgcolor_gray {
+	display: inline-block;
+	padding: 0 5px;
+	background: #f0f0f0
+}
+
+.listbox.thead thead tr:hover {
+	background: 0 0
+}
+
+.listbox.thead thead th {
+	padding: 11px 5px;
+	border-bottom: 1px solid #f0f0f0;
+	font-weight: 400;
+	color: #333
+}
+
+.listbox.thead thead th:first-child {
+	padding: 0 0 0 25px
+}
+
+.yellowbox {
+	position: absolute;
+	z-index: 1400;
+	top: 80px;
+	left: 50%;
+	width: 320px;
+	margin: 0 -160px;
+	padding: 4px 0;
+	background: #fff6d5;
+	text-align: center;
+	border: 1px solid #e9e9e9;
+	border-bottom: 2px solid #e9e9e9
+}
+
+.yellowbox p {
+	display: inline;
+	font-weight: 700;
+	color: #333
+}
+
+.yellowbox button {
+	margin-left: 10px;
+	color: #2985db
+}
+
+.view_field {
+	padding: 10px 20px 0
+}
+
+.view_field, .view_field a {
+	color: #444
+}
+
+.content_inbox .cont_box.mailview {
+	min-width: 500px
+}
+
+.view_field .boardview a {
+	text-decoration: underline;
+	color: #00e
+}
+
+.view_field .boardview a:visited {
+	color: #551a8b
+}
+
+.view_field h3 .impt {
+	display: inline-block;
+	margin-right: 10px;
+	width: 16px;
+	height: 16px;
+	background: url(../images/sp_menu.png) 0 0 no-repeat;
+	background-position: -148px -311px
+}
+
+.view_field h3 .impt.on {
+	background-position: -148px -289px
+}
+
+.view_field h3 .title {
+	font-size: 22px;
+	font-weight: 400;
+	line-height: 18px
+}
+
+.view_field h3 .memo {
+	font-size: 14px;
+	font-weight: 400;
+	color: #779ec0
+}
+
+.view_field .date {
+	padding: 20px 0 0 30px;
+	color: #888;
+	font-size: 14px
+}
+
+.view_field .date.pdb_20 {
+	padding-bottom: 20px
+}
+
+.view_field .top_link {
+	padding: 0 0 20px 30px
+}
+
+.view_field .top_link a {
+	color: #2985db
+}
+
+.view_field .sender {
+	padding: 0 0 0 30px;
+	line-height: 22px
+}
+
+.view_field .addressee a.f13, .view_field .sender a.f13 {
+	font-size: 13px
+}
+
+.view_field .addressee {
+	margin: 0 0 0 30px;
+	padding: 0 0 15px 0;
+	border-bottom: 1px solid #eceeef;
+	line-height: 22px
+}
+
+.view_field .addFiles {
+	position: relative;
+	margin: 0 0 0 30px;
+	padding: 15px 0;
+	border-bottom: 1px solid #eceeef
+}
+
+.view_field .addFiles:after {
+	display: block;
+	clear: both;
+	content: ""
+}
+
+.view_field .addFiles img {
+	vertical-align: middle
+}
+
+.view_field .addFiles .point-ora {
+	color: #ff6709
+}
+
+.view_field .filebox, .view_field .filebox-mass {
+	float: left;
+	max-width: 80%;
+	margin-right: 25px;
+	margin-top: 9px;
+	padding-right: 25px;
+	border-right: 1px solid #eceeef
+}
+
+.view_field .filebox-mass.one, .view_field .filebox.one {
+	border-right: none
+}
+
+.cont_file {
+	float: left;
+	margin: 0 20px 5px 0
+}
+
+.quan_list:after {
+	content: "";
+	display: block;
+	visibility: hidden;
+	clear: both
+}
+
+.quan_list li {
+	float: left;
+	min-width: 300px;
+	margin: 0 20px 5px 0
+}
+
+.view_field .icon.submit {
+	float: left
+}
+
+.view_field .mailbody {
+	border-bottom: 1px solid #eceeef;
+	margin: 0 0 0 30px;
+	padding: 25px 0 40px;
+	overflow: hidden;
+	line-height: 22px
+}
+
+.view_field .mailbody.border0 {
+	border-bottom: 0
+}
+
+.view_field .mailbody.boardview {
+	font-size: 16px;
+	line-height: 1.8em;
+	margin: 0 25px 0 0;
+	padding: 25px 0 40px 30px
+}
+
+.view_field .mailbody.boardview ol {
+	display: block;
+	list-style-type: decimal;
+	margin: 1em 0;
+	padding-left: 40px;
+	list-style-position: inside
+}
+
+.view_field .mailbody.boardview ol li {
+	list-style: inherit
+}
+
+.view_field .mailbody.boardview ul {
+	display: block;
+	margin: 1em 0;
+	padding-left: 40px;
+	list-style-type: disc;
+	list-style-position: inside
+}
+
+.view_field .mailbody.boardview ul li {
+	list-style: inherit
+}
+
+.view_field .mailbody.boardview ol ul, .view_field .mailbody.boardview ul ul
+	{
+	list-style-type: circle;
+	list-style-position: inside
+}
+
+.view_field .mailbody.boardview ol ol, .view_field .mailbody.boardview ul ol
+	{
+	list-style-type: lower-latin;
+	list-style-position: inside
+}
+
+#contents .send-title {
+	border-bottom: 0
+}
+
+#contents .send-title h3 {
+	font-weight: 400;
+	color: #2985db
+}
+
+#contents .send-title+.content_inbox h4 {
+	margin-top: 78px
+}
+
+.spf-area {
+	margin: 0 0 0 30px;
+	padding: 10px 12px;
+	background: #ffe3cd;
+	color: #666
+}
+
+.spf-area .icon {
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	color: #fff;
+	background: #ea6c06;
+	font-size: 12px;
+	text-align: center;
+	line-height: 16px
+}
+
+.spf-area a, .spf-area b {
+	color: #333
+}
+
+.spf-area a:hover {
+	text-decoration: underline
+}
+
+.spf-area.no-img {
+	background: #eceeef;
+	color: #333
+}
+
+.write_field {
+	padding: 0 25px 40px
+}
+
+.cont_box.board .write_field {
+	padding: 0 0 40px 25px
+}
+
+.write_input {
+	position: relative;
+	margin-bottom: 8px
+}
+
+.write_input img, .write_input input, .write_input label {
+	vertical-align: middle
+}
+
+.write_input label, .write_input>p {
+	position: absolute;
+	top: 4px;
+	left: 0;
+	width: 108px
+}
+
+.write_input .txt {
+	margin: 0 160px 0 108px;
+	width: auto
+}
+
+.write_input .txt.official {
+	margin: 0 160px 0 108px
+}
+
+.write_input .txt .position {
+	position: relative
+}
+
+.write_input .txt input[type=text] {
+	width: 100% !important;
+	height: 24px;
+	min-height: 24px !important;
+	padding: 4px 6px;
+	border: 1px solid #cfcfcf
+}
+
+.write_input .txt .cc_addr {
+	width: 100% !important;
+	overflow: hidden;
+	height: 26px;
+	min-height: 24px !important;
+	padding: 3px 6px;
+	border: 1px solid #cfcfcf
+}
+
+.write_input .txt .cc_addr:focus, .write_input .txt input[type=text]:focus
+	{
+	border: 1px solid #2985db
+}
+
+.write_input .txt .cc_addr li {
+	float: left;
+	margin: 4px 10px 0 0
+}
+
+.write_input .txt .cc_addr li .mail {
+	display: block;
+	float: left;
+	padding: 1px 6px
+}
+
+.write_input .txt .cc_addr li .mail.blue {
+	background: #ecf5fa
+}
+
+.write_input .txt .cc_addr li .mail.deapblue {
+	background: #d3e2ea
+}
+
+.write_input .txt .cc_addr li .mail.red {
+	background: #f5eded
+}
+
+.write_input .txt .cc_addr li .mail.deapred {
+	background: #ece3e3
+}
+
+.write_input .txt .cc_addr li .dash {
+	float: left;
+	padding-left: 2px
+}
+
+.write_input .txt .cc_addr li textarea {
+	min-width: 60px;
+	margin-right: 10px;
+	height: 24px;
+	border: 0;
+	overflow: hidden;
+	resize: none;
+	display: inline
+}
+
+.write_input .txt a.addaddr {
+	position: absolute;
+	display: inline-block;
+	background-position: -182px -76px;
+	width: 32px;
+	height: 32px;
+	right: -47px;
+	top: 0;
+	border: 1px solid #cfcfcf;
+	border-left: 0
+}
+
+.write_input .txt.title {
+	margin: 0 127px 0 108px
+}
+
+.write_input .txt.board {
+	margin: 0 113px 0 108px
+}
+
+.cont_box.board .write_input .txt.title {
+	margin: 0 109px 0 108px
+}
+
+.cont_box.board .write_input .txt.board {
+	margin: 0 0 0 108px
+}
+
+.docu_write .txt.title {
+	margin: 0 115px 0 108px
+}
+
+.write_input .txt.file {
+	margin: 0 115px 0 0
+}
+
+.cont_box.board .write_input .txt.edit, .cont_box.board .write_input .txt.file
+	{
+	margin: 0
+}
+
+.board_comment_tab .gt-nav-item {
+	float: left;
+	padding: 8px 34px;
+	color: #acacac;
+	background-color: #d9dde0;
+	font-size: 14px
+}
+
+.board_comment_tab .gt-nav-item.gt-active {
+	color: #333;
+	background-color: #f6f7f8;
+}
+
+.board_comment_tab:before, .board_comment_tab:after {
+	display: block;
+	content: " ";
+	clear: both;
+}
+
+.number_comments {
+	margin-bottom: 30px
+}
+
+.board_comment {
+	padding: 30px 20px;
+}
+
+.board_comment {
+	padding: 20px;
+	background: #f6f7f8;
+}
+
+.board_comment li {
+	padding: 0 20px 20px 13px;
+	margin-bottom: 25px;
+}
+
+.board_comment li:last-child {
+	margin-bottom: 10px;
+}
+
+.comment_write {
+	padding: 0px 0 0 13px;
+}
+
+.comment_write {
+	padding: 30px 0 0 30px
+}
+
+.comment_write input[type=text] {
+	width: 80%;
+	width: -moz-calc(100% - 97px);
+	width: calc(100% - 97px);
+	padding: 5px;
+	border: 1px solid #fff
+}
+
+.comment_write button {
+	display: inline-block;
+	width: 80px;
+	padding: 3px 0 7px;
+	background: #fff;
+	text-align: center;
+	color: #2c86dc;
+	border: 1px solid #c8c8c8
+}
+
+.comment_write button:hover {
+	border: 1px solid #2c86dc
+}
+
+.gt-tab .gt-tab-nav .gt-nav-item.gt-active {
+	color: #fff;
+	background-color: #2598e7
+}
+
+.gt-nav-item {
+	float: left;
+	padding: 10px 20px;
+	color: #666;
+	background-color: #eee
+}
+
+.gt-tab .gt-tab-nav .gt-nav-item:hover, .gt-tab .gt-tab-nav .gt-nav-item:focus
+	{
+	background-color: #ddd;
+	transition-duration: .3s
+}
+
+.gt-tab .gt-tab-nav .gt-nav-item.gt-active {
+	color: #fff;
+	background-color: #2598e7
+}
+
+.office-api--page .gt-tab .gt-tab-nav .gt-nav-item.gt-active {
+	background: #fff;
+	border: 1px solid #cdcdcd;
+	color: #333
+}
+
+.office-newmanage--page .office-manage-tab .gt-tab-nav .gt-nav-item.gt-active
+	{
+	border: none;
+	background: none;
+	border-bottom: 2px solid #2985db
+}
+
+.office-newmanage--page .office-manage-tab .gt-tab-nav .gt-nav-item.gt-active
+	{
+	color: #2985db !important
+}
+
+.board_comment.approval li .txt>p {
+	color: #676767;
+}
+
+.comment_write .comment-texarea {
+	width: 80%;
+	width: -moz-calc(100% - 97px);
+	width: calc(100% - 97px);
+	padding: 5px;
+	border: 1px solid #fff;
+	resize: none;
+	height: 50px;
+}
+
+
+
+.board_comment li .txt .icon.file_delete:hover {
+	background-position: -348px -131px;
+}
+
+.board_comment li .txt .btn_del_comment {
+	visibility: hidden;
+}
+
+.board_comment li .txt:hover .btn_del_comment {
+	position: absolute;
+	right: 10px;
+	width: 17px;
+	height: 16px;
+	background-position: -323px -7px;
+	visibility: visible;
+}
+
+}
+.bt_left {
+	width: 100%;
+	padding: 20px 0 50px;
+	text-align: left
+}
+
+.bt_left button {
+	border: 1px solid #c8c8c8;
+	display: inline-block;
+	width: 80px;
+	padding: 4px 0 6px;
+	background: #fff;
+	color: #2c86dc
+}
+
+.bt_left button:hover {
+	border: 1px solid #2c86dc
+}
+
+.bt_center button.gray, .bt_left button.gray {
+	background: #f1f1f1;
+	color: #444;
+	border: 1px solid #c8c8c8;
+	padding: 4px 0 6px
+}
+
+.bt_center button.gray:hover, .bt_left button.gray:hover {
+	border: 1px solid #8c8c8c
+}
+
+.office-api--page .bt_left .cancel {
+	background: #f1f1f1;
+	border-color: transparent
+}
+
+.bt_left button {
+	width: 238px
+}
+
+.setting_field.api .conduct .bt_left button {
+	width: 80px
+}
+
+.comment_write {
+	padding: 30px 0 0 30px
+}
+
+.comment_write input[type=text] {
+	width: 80%;
+	width: -moz-calc(100% - 97px);
+	width: calc(100% - 97px);
+	padding: 5px;
+	border: 1px solid #fff
+}
+
+.comment_write button {
+	display: inline-block;
+	width: 80px;
+	padding: 3px 0 7px;
+	background: #fff;
+	text-align: center;
+	color: #2c86dc;
+	border: 1px solid #c8c8c8
+}
+
+.comment_write button:hover {
+	border: 1px solid #2c86dc
+}
+
+
+
+/** 운주 추가 */
+th {
+	background-color: #efefff;
+	font-weight: bold;
+	text-align: center;
+}
+.table {
+	border-collapse: collapse !important;
+	padding: 0px 0px !important;
+	margin: 0 !important;
+	vertical-align: middle;
+}
+
+.lastTR>td {
+	border-bottom: none !important;
+}
+
+.firstTD {
+	border-left: none !important;
+}
+
+.lastTD {
+	border-right: none !important;
+}
+
+/* 행 높이 */
+.nameZone {
+	height: 30px !important;
+}
+
+.signZone {
+	height: 80px !important;
+}
+
+
+
+
+
+
+
+

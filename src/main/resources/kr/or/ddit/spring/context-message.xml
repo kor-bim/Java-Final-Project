@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd">
+
+   <bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource"
+      p:cacheSeconds="60"
+   >
+      <property name="basenames">
+         <list>
+			<value>classpath:/org/springframework/security/messages</value>
+			<value>classpath:/kr/or/ddit/msg/message-common</value>
+			<value>classpath:/kr/or/ddit/msg/message</value>
+			<value>classpath:/kr/or/ddit/msg/errorMessage</value>
+			<value>classpath:/message/message-common</value>
+         </list>
+      </property>
+   </bean>
+
+   <bean id="messageSourceAccessor" class="org.springframework.context.support.MessageSourceAccessor"
+      c:messageSource-ref="messageSource" />
+	
+</beans>
+
+	

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd" >
+<tiles-definitions>
+
+<!-- 인사관리 left Menu : 건드리지 말것 ! -->
+	<definition name="hrLeft" extends="parent">
+		<put-attribute name="leftMenu" value="/includee/leftMenus/hrLeftMenu.jsp" />
+	</definition>
+
+
+<!-- 사용자메뉴 -->
+	<!-- 인사정보 -->	
+	
+
+	<!-- 휴가/근태 -->
+	<definition name="hr/*" extends="hrLeft">
+		<put-attribute name="content" value="/WEB-INF/views/hr/{1}.jsp" />
+	</definition>
+
+<!-- 관리자메뉴 -->
+	<!-- 인사 관리 -->
+	<definition name="org/*" extends="hrLeft">
+		<put-attribute name="content" value="/WEB-INF/views/org/{1}.jsp" />
+	</definition>
+	
+	<definition name="hrAdmin/*" extends="hrLeft">
+		<put-attribute name="content" value="/WEB-INF/views/hrAdmin/{1}.jsp" />
+	</definition>
+	
+	
+	<!-- 휴가관리 -->
+	<definition name="vacation/*" extends="hrLeft">
+		<put-attribute name="content" value="/WEB-INF/views/vacation/{1}.jsp"/>
+	</definition>
+
+	<!-- 근태관리 -->
+	
+	
+</tiles-definitions>

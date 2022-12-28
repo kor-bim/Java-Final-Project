@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.schedule.dao.CalendarDAO">
+	<select id="selectDepartmentList" parameterType="DeptVO" resultType="DeptVO">
+		SELECT DISTINCT(A.DEPT_CODE), A.DEPT_NAME 
+		  FROM DEPARTMENT A RIGHT OUTER JOIN MEMBER B ON(A.DEPT_CODE = B.DEPT_CODE)
+		 ORDER BY A.DEPT_CODE
+	</select>
+	
+	<select id="selectDeptMemberList" parameterType="MemberVO" resultType="MemberVO">
+		SELECT
+		    MEM_ID,
+		    MEM_NAME,
+		    MEM_ADD,
+		    A.DEPT_CODE,
+		    JOB_CODE,
+		    AS_CODE,
+		    MEM_ZIP,
+		    B.DEPT_NAME,
+		    A.PS_CODE
+		  FROM MEMBER A LEFT OUTER JOIN DEPARTMENT B ON(A.DEPT_CODE = B.DEPT_CODE)
+		  <if test="deptName!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(deptName)">
+		  WHERE B.DEPT_NAME = #{deptName, jdbcType=VARCHAR}
+		  </if>
+		  order by A.PS_CODE, A.DEPT_CODE
+	</select>
+</mapper>

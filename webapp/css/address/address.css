@@ -1,0 +1,52 @@
+/**
+ * @author 서대철
+ * @since 2021. 2. 2.
+ * @version 1.0
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ *  수정일        	 수정자       			수정내용
+ * --------     --------    ----------------------
+ * 2021. 2. 2.       서대철       			최초작성
+ * Copyright (c) 2021 by DDIT All right reserved
+ * </pre>
+ */ 
+
+@charset "UTF-8";
+
+.flex-container {
+	width: 100%;
+	display: flex;
+}
+
+.addtype-btn input {
+	all: unset;
+}
+
+.addtype-btn {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-content: center;
+	padding: 10px;
+	background: #f3f3f3;
+	color: #gggggg;
+	cursor: pointer;
+	border: 1px solid #dcdfe6;
+}
+
+.addtype-btn__active {
+	background: #ffffff;
+	border: 1px solid #1547e8;
+	color: #1547e8;
+}
+
+.addtype-btn label, .addtype-btn label::before, .addtype-btn label::after
+	{
+	all: unset !important;
+}
+
+.addtype-btn label {
+	display: flex;
+	justify-content: center;
+	align-content: center;
+}

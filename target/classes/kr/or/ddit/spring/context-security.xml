@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.2.xsd">
+
+	<!-- <intercept-url pattern="/mypage.do" access="isAuthenticated()"/> -->
+
+	<beans:bean id="passwordEncoder"
+		class="org.springframework.security.crypto.password.DelegatingPasswordEncoder">
+		<beans:constructor-arg name="idForEncode"
+			value="bcrypt" />
+		<beans:constructor-arg
+			name="idToPasswordEncoder">
+			<beans:map>
+				<beans:entry key="bcrypt">
+					<beans:bean
+						class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"></beans:bean>
+				</beans:entry>
+				<beans:entry key="sha256">
+					<beans:bean
+						class="org.springframework.security.crypto.password.MessageDigestPasswordEncoder"
+						c:algorithm="SHA-256" />
+				</beans:entry>
+			</beans:map>
+		</beans:constructor-arg>
+	</beans:bean>
+
+	<beans:bean id="messageSource"
+		class="org.springframework.context.support.ResourceBundleMessageSource"
+		p:basenames="kr.or.ddit.msg.message,kr.or.ddit.msg.message-security" />
+
+	<beans:bean id="messageSourceAccessor"
+		class="org.springframework.context.support.MessageSourceAccessor"
+		c:messageSource-ref="messageSource" />
+
+
+	<beans:bean id="authenticationProvider"
+		class="org.springframework.security.authentication.dao.DaoAuthenticationProvider"
+		p:userDetailsService-ref="customUserService"
+		p:passwordEncoder-ref="passwordEncoder"
+		p:hideUserNotFoundExceptions="false" />
+
+	<authentication-manager
+		id="authenticationManager">
+		<authentication-provider
+			ref="authenticationProvider" />
+	</authentication-manager>
+
+	<beans:bean id="customAuthenticationSuccessHandler"
+		class="kr.or.ddit.commons.security.CustomAuthenticationSuccessHandler"
+		p:defaultTargetUrl="/login/login.do" p:alwaysUseDefaultTargetUrl="true" />
+
+	<!-- 밑의 경로들은 시큐리티가 돌지않음 -->
+	<http pattern="/common/**" security="none" />
+	<http pattern="/resources/**" security="none" />
+	<http pattern="/resource/**" security="none" />
+	<http pattern="/includee/**" security="none" />
+	<http pattern="/css/**" security="none" />
+	<http pattern="/plugins/**" security="none" />
+	<http pattern="/images/**" security="none" />
+	<http pattern="/js/**" security="none" />
+	<http pattern="/**/*.css" security="none" />
+	<http pattern="/**/*.js" security="none" />
+
+
+
+	<http authentication-manager-ref="authenticationManager"
+		auto-config="true" use-expressions="true">
+		<form-login login-page="/sign/signForm"
+			username-parameter="memId" password-parameter="memPass"
+			login-processing-url="/login/loginProcess.do"
+			authentication-success-handler-ref="customAuthenticationSuccessHandler"
+			authentication-failure-url="/sign/signForm" />
+
+		<logout logout-url="/login/logout" invalidate-session="true"
+			logout-success-url="/sign/signForm" />
+
+		<intercept-url pattern="/" access="isAnonymous()" />
+      	<intercept-url pattern="/sign/**" access="isAnonymous()" />
+      	<intercept-url pattern="/admin/setManager" access="hasAnyRole('ROLE_ADMIN')" />
+      	<intercept-url pattern="/admin/org/posJob" access="hasAnyRole('ROLE_ADMIN','ROLE_HRADMIN')" />
+      	<intercept-url pattern="/admin/userManagement" access="hasAnyRole('ROLE_ADMIN','ROLE_HRADMIN')" />
+      	<intercept-url pattern="/admin/userManagement" access="hasAnyRole('ROLE_ADMIN','ROLE_HRADMIN')" />
+      	<intercept-url pattern="/admin/setHrManager" access="hasAnyRole('ROLE_ADMIN','ROLE_HRADMIN')" />
+      	<intercept-url pattern="/admin/vacatype" access="hasAnyRole('ROLE_ADMIN','ROLE_HRADMIN')" />
+      	<intercept-url pattern="/admin/vacaStatus" access="hasAnyRole('ROLE_ADMIN','ROLE_HRADMIN')" />
+      	<intercept-url pattern="/admin/abenteesimManage" access="hasAnyRole('ROLE_ADMIN','ROLE_HRADMIN')" />
+      	<intercept-url pattern="/admin/setEaManager" access="hasAnyRole('ROLE_ADMIN','ROLE_EAADMIN')" />
+      	<intercept-url pattern="/admin/approvalFarmboxList" access="hasAnyRole('ROLE_ADMIN','ROLE_EAADMIN')" />
+      	<intercept-url pattern="/admin/allDocumentBox" access="hasAnyRole('ROLE_ADMIN','ROLE_EAADMIN')" />
+      	<intercept-url pattern="/admin/deleteDocumentBox" access="hasAnyRole('ROLE_ADMIN','ROLE_EAADMIN')" />
+      	<intercept-url pattern="/admin/setCmManager" access="hasAnyRole('ROLE_ADMIN','ROLE_CMADMIN')" />
+      	<intercept-url pattern="/admin/setManager" access="hasAnyRole('ROLE_ADMIN')" />
+      	<intercept-url pattern="/admin/**" access="hasAnyRole('ROLE_ADMIN','ROLE_CMADMIN','ROLE_EAADMIN','ROLE_HRADMIN')" />
+      	<intercept-url pattern="/**" access="isAuthenticated()" />
+
+		<csrf disabled="true" />
+
+		<remember-me remember-me-parameter="rememberMe"
+			remember-me-cookie="rememberMeCookie" />
+
+	</http>
+
+	
+
+
+</beans:beans>

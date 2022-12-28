@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.board.dao.VoteBoardReplyDAO">
+
+	<sql id="whereClause">
+		WHERE VB_NO = #{searchDetail.vbNo}
+	</sql>
+
+	<select id="selectVoteReplyCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*) FROM VB_REPLY
+		<include refid="whereClause" />
+	</select>
+
+	<select id="selectVoteReplyList" parameterType="PagingVO" resultType="VoteBoardReplyVO">
+		WITH REPLYER AS 
+		    ( 
+		     SELECT MEM_ID ID 
+		            , MEM_NAME  NAME
+		            , DEPT_CODE DEPTCODE
+		            , DEPT_NAME DEPTNAME
+		            , MEM_IMG   IMG
+		       FROM V_MEMBER
+		    )
+		    SELECT B.*
+		      FROM (
+		            SELECT ROWNUM RNUM, A.* 
+		              FROM (
+		                    SELECT
+		                        DISTINCT(VBR_NO)
+		                        , VBR_CONTENT
+		                        , VBR_DATE
+		                        , MEM_ID
+		                        , PARENT_NO
+		                        , REPLYER.NAME as NAME
+		                        , REPLYER.DEPTNAME as DEPTNAME
+		                        , REPLYER.IMG as MEMIMG
+		                    FROM VB_REPLY 
+		                        LEFT OUTER JOIN REPLYER ON (VB_REPLY.MEM_ID=REPLYER.ID)
+		                    <include refid="whereClause" />
+		                    START WITH PARENT_NO IS NULL
+							CONNECT BY PRIOR VBR_NO = PARENT_NO
+							ORDER SIBLINGS BY VBR_NO DESC
+		            ) A
+		          )B
+		     WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+		     ORDER BY VBR_DATE DESC
+	</select>
+	
+	
+	
+	<insert id="insertVoteReply" parameterType="VoteBoardReplyVO">
+		<selectKey order="BEFORE" resultType="integer" keyProperty="vbrNo">
+				SELECT NVL(MAX(VBR_NO),0)+1 
+				  FROM VB_REPLY
+		</selectKey>   
+		INSERT INTO VB_REPLY (
+		   VBR_NO
+			, VBR_CONTENT
+			, VBR_DATE
+			, MEM_ID
+			, VB_NO
+			<if test="parentNo!=null and parentNo gt 0">
+				, PARENT_NO
+			</if>
+		) VALUES (
+			#{vbrNo,jdbcType=NUMERIC} 
+		    , #{vbrContent,jdbcType=VARCHAR}
+		    , SYSDATE
+		    , #{memId,jdbcType=VARCHAR}
+		    , #{vbNo,jdbcType=NUMERIC}
+			<if test="parentNo!=null and parentNo gt 0">
+		    	, #{parentNo,jdbcType=NUMERIC}
+		    </if>
+		)
+	</insert>
+	
+	<update id="updateVoteReply" parameterType="VoteBoardReplyVO">
+		UPDATE VB_REPLY
+		   SET 
+		   		VBR_CONTENT = #{vbrContent}
+		   		, VBR_DATE = SYSDATE
+		 WHERE VBR_NO = #{vbrNo}
+	</update>
+	
+	<delete id="deleteVoteReply" parameterType="VoteBoardReplyVO">
+		DELETE FROM VB_REPLY
+		 WHERE VBR_NO = #{vbrNo}
+	</delete>
+	
+	
+</mapper>

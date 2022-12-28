@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" "http://tiles.apache.org/dtds/tiles-config_3_0.dtd" >
+<tiles-definitions>
+
+	<!-- 운주 수정 : 전자결재 left Menu -->
+	<definition name="approvalLeft" extends="parent">
+		<put-attribute name="leftMenu"
+			value="/includee/leftMenus/eApprovalLeft.jsp" />
+	</definition>
+
+	<!-- 전자결재 contents -->
+	<definition name="approval/*" extends="approvalLeft">
+		<put-attribute name="content"
+			value="/WEB-INF/views/approval/{1}.jsp" />
+	</definition>
+
+</tiles-definitions>

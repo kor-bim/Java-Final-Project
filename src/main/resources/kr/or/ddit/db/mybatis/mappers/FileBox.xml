@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.FileBox.dao.FileBoxDAO">
+	<select id="selectFileCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*) 
+		  FROM (
+			SELECT
+                FILE_NO,
+                FILE_NAME,
+                FILE_REALNAME,
+                FILE_SIZE,
+                FILE_EXTNS,
+                FILE_PARENT,
+                FILE_FANCY,
+                TO_CHAR(FILE_DATE, 'YYYY-MM-DD HH24:MI:SS') FILE_DATE,
+                MEM_ID,
+                FILE_DIR,
+                FILE_DEL,
+                FILE_TYPE
+            FROM FILES
+            WHERE MEM_ID = #{userId, jdbcType=VARCHAR}
+             AND FILE_DEL = 'N'
+             AND FILE_PARENT IS NULL
+             AND FILE_TYPE = #{fileType}
+		) A
+	</select>
+
+	<select id="selectFileBoxList" parameterType="PagingVO" resultType="FileBoxVO">
+		SELECT B.*
+		  FROM (
+		       SELECT ROWNUM RNUM, A.*
+		         FROM (
+					SELECT
+					    FILE_NO,
+					    FILE_NAME,
+					    FILE_REALNAME,
+					    FILE_SIZE,
+					    FILE_EXTNS,
+					    FILE_PARENT,
+					    FILE_FANCY,
+					    TO_CHAR(FILE_DATE, 'YYYY-MM-DD HH24:MI:SS') FILE_DATE,
+					    MEM_ID,
+					    FILE_DIR,
+					    FILE_DEL,
+					    FILE_TYPE
+					FROM FILES
+				   WHERE MEM_ID = #{userId, jdbcType=VARCHAR}
+					 AND FILE_DEL = 'N'
+ 			 		 AND FILE_PARENT IS NULL
+ 			 		 AND FILE_TYPE = #{fileType}
+				   ORDER BY FILE_DIR DESC  , FILE_REALNAME
+				) A
+			) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<select id="selectDeleteFileCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		  FROM FILES
+		 WHERE MEM_ID = #{userId, jdbcType=VARCHAR}
+		   AND FILE_DEL = 'Y'
+	</select>
+	
+	<select id="selectDeleteFileBoxList" parameterType="PagingVO" resultType="FileBoxVO">
+		SELECT B.*
+		  FROM (
+		       SELECT ROWNUM RNUM, A.*
+		         FROM (
+					SELECT
+					    FILE_NO,
+					    FILE_NAME,
+					    FILE_REALNAME,
+					    FILE_SIZE,
+					    FILE_EXTNS,
+					    FILE_PARENT,
+					    FILE_FANCY,
+					    TO_CHAR(FILE_DATE, 'YYYY-MM-DD HH24:MI:SS') FILE_DATE,
+					    MEM_ID,
+					    FILE_DIR,
+					    FILE_DEL
+					FROM FILES
+				   WHERE MEM_ID = #{userId, jdbcType=VARCHAR}
+			  		 AND FILE_DEL = 'Y'
+				   ORDER BY FILE_NO DESC
+				) A
+			) B
+		WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+
+	<update id="deleteFileBox" parameterType="int">
+		UPDATE FILES
+		   SET FILE_DEL = 'Y'
+		     , FILE_DATE = SYSDATE
+		 WHERE FILE_NO IN
+		 	<foreach collection="deleteFileNo" item="delNo" open="(" close=")" separator=",">
+			 	#{delNo, jdbcType=NUMERIC}
+		 	</foreach>
+		   AND FILE_TYPE = #{fileType}
+	</update>
+	
+	<update id="backUpFileBox" parameterType="int">
+		UPDATE FILES
+		   SET FILE_DEL = 'N'
+		     , FILE_DATE = SYSDATE
+		 WHERE FILE_NO IN
+		 	<foreach collection="deleteFileNo" item="backUpNo" open="(" close=")" separator=",">
+			 	#{backUpNo, jdbcType=NUMERIC}
+		 	</foreach>
+	</update>
+	
+	<insert id="insertFile" parameterType="FileBoxVO">
+		<selectKey keyProperty="fileNo" resultType="int" order="BEFORE">
+			SELECT NVL(MAX(FILE_NO),0)+1
+  			  FROM FILES
+		</selectKey>
+			INSERT ALL
+			<foreach collection="fileList" item="file" index="index">
+				INTO FILES (
+							  FILE_NO
+							, FILE_NAME
+							, FILE_REALNAME
+							, FILE_SIZE
+							, FILE_EXTNS
+							, FILE_PARENT
+							, FILE_FANCY
+							, MEM_ID
+							, FILE_DATE
+							, FILE_DIR
+							, FILE_DEL
+							, FILE_TYPE
+				
+				) VALUES (
+							  #{fileNo} + #{index}
+							, #{file.fileName}
+							, #{file.fileRealName}
+							, #{file.fileSize}
+							, #{file.fileExtns}
+							, #{fileParent, jdbcType=NUMERIC}
+							, #{file.fileFancy}
+							, #{memId}
+							, SYSDATE
+							, 'N'
+							, 'N'
+							, #{fileType}
+				)
+			</foreach>
+			SELECT * FROM DUAL
+	</insert>
+	
+	<select id="selectAttach" parameterType="int" resultType="FileBoxVO">
+		SELECT
+			FILE_NO,
+			FILE_NAME,
+			FILE_REALNAME,
+			FILE_SIZE,
+			FILE_EXTNS,
+			FILE_PARENT,
+			FILE_FANCY,
+			MEM_ID,
+			FILE_DATE,
+			FILE_DIR,
+			FILE_DEL
+		FROM
+			FILES
+		WHERE
+	   		FILE_NO = #{fileNo}
+	</select>
+	
+	<insert id="createFolder" parameterType="FileBoxVO">
+		<selectKey keyProperty="fileNo" resultType="int" order="BEFORE">
+			SELECT NVL(MAX(FILE_NO),0)+1
+  			  FROM FILES
+		</selectKey>
+		INSERT INTO FILES (
+		    FILE_NO,
+		    FILE_REALNAME,
+		    MEM_ID,
+		    FILE_DIR,
+		    FILE_DEL,
+		    FILE_TYPE,
+		    FILE_PARENT
+		) VALUES (
+		    #{fileNo, jdbcType=NUMERIC}
+		    , #{fileRealName, jdbcType=VARCHAR}
+		    , #{memId, jdbcType=VARCHAR}
+		    , 'Y'
+		    , 'N'
+		    , #{fileType}
+		    <choose>
+		    	<when test="fileParent != null">
+				    , #{fileParent, jdbcType=NUMERIC}
+		    	</when>
+		    	<otherwise>
+		    		, null
+		    	</otherwise>
+		    </choose>
+		)
+	</insert>
+	
+	<select id="folderList" parameterType="FileBoxVO" resultType="FileBoxVO">
+		SELECT FILE_NO
+		     , FILE_NAME
+		     , FILE_REALNAME
+		     , FILE_SIZE
+		     , FILE_PARENT
+		     , FILE_EXTNS
+		     , FILE_FANCY
+		     , MEM_ID
+		     , FILE_DATE
+		     , FILE_DIR
+		     , FILE_DEL
+		  FROM FILES
+		 WHERE MEM_ID = #{memId, jdbcType=VARCHAR}
+		   AND FILE_DEL = 'N'
+		   AND FILE_TYPE IN( #{fileType} )
+		 	<choose>
+		 		<when test="fileNo">
+					AND FILE_PARENT = #{fileNo, jdbcType=NUMERIC}
+		 		</when>
+		 		<otherwise>
+			 		AND FILE_PARENT IS NULL
+		 		</otherwise>
+		 	</choose>
+		 ORDER BY FILE_DIR DESC  , FILE_REALNAME
+	</select>
+	
+	<select id="selectFolderList" parameterType="FileBoxVO" resultType="FileBoxVO">
+		SELECT
+		    FILE_NO,
+		    FILE_NAME,
+		    LPAD('-----', (LEVEL)) ||' '|| FILE_REALNAME FILE_REALNAME,
+		    FILE_SIZE,
+		    FILE_EXTNS,
+		    FILE_PARENT,
+		    FILE_FANCY,
+		    MEM_ID,
+		    FILE_DATE,
+		    FILE_DIR,
+		    FILE_DEL
+		FROM FILES
+	   WHERE MEM_ID = #{memId, jdbcType=VARCHAR}
+	     AND FILE_DEL = 'N'
+		 AND FILE_DIR = 'Y'
+		 AND FILE_TYPE = #{fileType}
+	   START WITH FILE_PARENT IS NULL
+	 CONNECT BY PRIOR FILE_NO = FILE_PARENT
+	</select>
+	
+	<delete id="deleteFile" parameterType="int">
+		DELETE FROM FILES
+		 WHERE FILE_NO = #{fileNo, jdbcType=NUMERIC}
+	</delete>
+	
+	<select id="fileInFolederCount" parameterType="FileBoxVO" resultType="int">
+		SELECT NVL(COUNT(*), 0)
+		  FROM FILES
+		 WHERE FILE_PARENT = #{fileNo, jdbcType=NUMERIC}
+		   AND FILE_DIR = 'Y'
+		   AND FILE_DEL = 'N'
+		   AND MEM_ID = #{memId, jdbcType=VARCHAR}
+	</select>
+	
+	<update id="folderNameUpdate" parameterType="FileBoxVO">
+		UPDATE FILES
+		   SET FILE_REALNAME = #{fileRealName, jdbcType=VARCHAR}
+		 WHERE MEM_ID = #{memId, jdbcType=VARCHAR}
+		   AND FILE_NO = #{fileNo, jdbcType=NUMERIC}
+		   AND FILE_TYPE = #{fileType}
+	</update>
+	
+	<select id="selectTotalSize" parameterType="FileBoxVO" resultType="FileBoxVO">
+		SELECT SUBSTR((SUM(FILE_SIZE)/ 1024 / 1024),0,4) AS SIZETOTAL
+  		  FROM FILES
+ 		 WHERE FILE_TYPE = #{fileType}
+	</select>
+</mapper>

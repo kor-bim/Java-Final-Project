@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.addressbook.dao.AddressbookDAO">
+	
+	<select id="selectAddressList" parameterType="kr.or.ddit.addressbook.vo.AddressBookVO"
+	resultType="kr.or.ddit.addressbook.vo.AddressBookVO">
+		SELECT B.* 
+		  FROM (
+		    SELECT A.*, ROWNUM RNUM
+		      FROM (
+		    SELECT
+		        ADBK_CODE
+		       , ADBK_NAME
+		       , ADBK_MAIL
+		       , ADBK_HP
+		       , ADBK_ADD
+		       , ADBK_URL
+		       , ADBK_BIRTH
+		       , ADBK_NOTE
+		       , ADBK_TYPE
+		       , MEM_ID
+		      FROM  ADDRESSBOOK
+		     WHERE ADBK_TYPE = UPPER(#{adbkType, jdbcType=VARCHAR})
+			<if test="adbkType eq 'private'">
+				AND MEM_ID = #{memId, jdbcType=VARCHAR}
+			</if>
+		     ORDER BY 1 DESC
+		     ) A
+		 ) B
+	</select>
+	
+	<select id="selectAddress" parameterType="string" resultType="kr.or.ddit.addressbook.vo.AddressBookVO">
+		 SELECT
+		    ADBK_CODE
+		    , ADBK_NAME
+		    , ADBK_MAIL
+		    , ADBK_HP
+		    , ADBK_ADD
+		    , ADBK_URL
+		    , ADBK_BIRTH
+		    , ADBK_NOTE
+		    , ADBK_TYPE
+		  FROM ADDRESSBOOK
+		 WHERE ADBK_CODE = #{adbkCode}
+		 <if test="adbkType eq 'private'">
+			AND ADBK_TYPE = UPPER(#{adbkType, jdbcType=VARCHAR})
+		 </if>
+		   
+		 
+	</select>
+	
+	<insert id="insertAddress" parameterType="kr.or.ddit.addressbook.vo.AddressBookVO">
+		<selectKey keyProperty="adbkCode" resultType="string" order="BEFORE">
+			SELECT 'ADDR-0' || TO_CHAR(MAX(TO_NUMBER(SUBSTR(ADBK_CODE,7))) + 1)
+  			  FROM ADDRESSBOOK
+		</selectKey>
+		INSERT INTO ADDRESSBOOK (
+		    ADBK_CODE
+		    , ADBK_NAME
+		    , ADBK_MAIL
+		    , ADBK_HP
+		    , ADBK_ADD
+		    , ADBK_URL
+		    , ADBK_BIRTH
+		    , ADBK_NOTE
+		    , ADBK_TYPE
+		    , MEM_ID
+		) VALUES (
+		    #{adbkCode, jdbcType=VARCHAR}
+		    , #{adbkName, jdbcType=VARCHAR}
+		    , #{adbkMail, jdbcType=VARCHAR}
+		    , #{adbkHp, jdbcType=VARCHAR}
+		    , #{adbkAdd, jdbcType=VARCHAR}
+		    , #{adbkUrl, jdbcType=VARCHAR}
+		    , #{adbkBirth, jdbcType=VARCHAR}
+		    , #{adbkNote, jdbcType=VARCHAR}
+		    , UPPER(#{adbkType, jdbcType=VARCHAR})
+		    , #{memId, jdbcType=VARCHAR}
+		)
+	</insert>
+	
+	<update id="updateAddress" parameterType="kr.or.ddit.addressbook.vo.AddressBookVO">
+		UPDATE ADDRESSBOOK
+		    SET ADBK_NAME  = #{adbkName, jdbcType=VARCHAR},
+			    ADBK_MAIL  = #{adbkMail, jdbcType=VARCHAR},
+			    ADBK_HP    = #{adbkHp, jdbcType=VARCHAR},
+			    ADBK_ADD   = #{adbkAdd, jdbcType=VARCHAR},
+			    ADBK_URL   = #{adbkUrl, jdbcType=VARCHAR},
+			    ADBK_BIRTH = #{adbkBirth, jdbcType=VARCHAR},
+			    ADBK_NOTE  = #{adbkNote, jdbcType=VARCHAR},
+			    ADBK_TYPE  = UPPER(#{adbkType, jdbcType=VARCHAR})
+		  WHERE ADBK_CODE  = #{adbkCode}
+	</update>
+	
+	<delete id="deleteAddress" parameterType="string">
+		DELETE FROM ADDRESSBOOK
+		 WHERE ADBK_CODE = #{adbkCode}
+	</delete>
+	
+</mapper>

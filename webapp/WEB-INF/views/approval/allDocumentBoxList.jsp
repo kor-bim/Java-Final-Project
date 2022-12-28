@@ -1,0 +1,219 @@
+<%--
+* [[개정이력(Modification Information)]]
+*   수정일              수정자      	   수정내용
+* ----------  ---------  -----------------
+*  2021. 2. 22.   서대철      최초작성
+*  2021. 2. 27    이운주      페이지 헤더 수정 
+* Copyright (c) 2021 by DDIT All right reserved
+ --%>
+
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+
+<style>
+h6 {
+	float : left;
+}
+
+table {
+	cursor: pointer;
+}
+
+.approvalBtn {
+	float : right;
+	display: none;
+	font-weight: normal;
+}
+.count {
+	float : right;
+	display:none;
+	margin-right: 5px; 
+	margin-left: 10px; 
+	font-weight: normal;
+}
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
+	<div>
+		<h2 class="main-content-title tx-24 mg-b-5">전체 문서 목록</h2>
+		<ol class="breadcrumb">
+			<li class="breadcrumb-item">
+				<a href="#">관리자</a>
+			</li>
+			<li class="breadcrumb-item active" aria-current="page">전체 문서 목록</li>
+		</ol>
+	</div>
+</div>
+<!-- End Page Header -->
+    
+<div class="row row-sm">
+	<div class="col-lg-12">
+		<div class="card custom-card overflow-hidden">
+			<div class="card-body">
+				<div>
+					<h6 class="main-content-label">
+						전체 목록
+						<a class="approvalBtn" id="deleteBtn" href="#">삭제</a> 
+						<a class="count" href="#"></a>
+					</h6>
+				</div>
+				<div class="table-responsive"> 
+					<form:form>
+						<table id="allDocumentTable" class="table table-bordered border-t0 key-buttons text-nowrap w-100 table-hover">
+						<colgroup>
+							<col width="10%" />
+							<col width="50%" />
+							<col width="10%" />
+							<col width="10%" />
+							<col width="10%" />
+							<col width="10%" />
+						</colgroup>
+							<thead class="text-center">
+								<tr>
+									<th style="font-size:1.2rem;">문서번호</th>
+									<th style="font-size:1.2rem;">제목</th>
+									<th style="font-size:1.2rem;">기안자</th>
+									<th style="font-size:1.2rem;">기안일</th>
+									<th style="font-size:1.2rem;">완료일</th>
+									<th style="font-size:1.2rem;">결재 상태</th>
+								</tr>
+							</thead>
+							<tbody id="listBody" class="text-center">
+								
+							</tbody>
+						</table>
+					</form:form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- End Row -->
+
+<!-- 전체문서목록 삭제 확인  modal-->
+<div class="modal fade bd-example-modal-sm" id="documentDeleteModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="documentDeleteModalLabel">
+	<div class="modal-dialog modal-sm" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<table class="table">
+					<tr>
+						<td align="center">문서를 삭제하시겠습니까?</td>
+					</tr>
+				</table>
+			</div>
+			<div class="modal-footer">
+				<input type="button" value="삭제" class="btn btn-outline-warning" id="documentDeleteBtn" />
+				<button type="button" class="btn btn-outline-secondary" data-dismiss="modal">닫기</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript" src="${cPath }/js/e_approvel/approvalAllDocumentBox.js?v=1"></script>
+
+<script type="text/javascript">
+	$(function(){
+		$.approvalAllDocumnetBoxList();
+	});
+	
+	function approvalCheck(e) {
+		e.classList.toggle("on");
+		
+		let counts = document.getElementsByClassName("on").length
+			
+		if($("input:checkbox[name=adNo]").is(":checked")==true){
+			$(".approvalBtn").show();
+			$(".count").html(counts);
+			$(".count").show();
+		}else{
+			$(".approvalBtn").hide();
+			$(".count").hide();
+		}
+	}
+	
+	// ================= 삭제확인 modal ===========================================================
+	let documentDeleteModal = $("#documentDeleteModal").on("hidden.bs.modal", function() {
+		$(this).find(".modal-body");
+	});
+	
+	$("#deleteBtn").on("click", function(){
+		let deleteAdNo = [];
+		$("input[name=adNo]:checked").each(function(i){
+			deleteAdNo.push($(this).val())
+		});
+		let message = '';
+		$.ajax({
+			url : $.getContextPath() + "/admin/approvalSelectDocument",
+			method : 'post',
+			data : {deleteAdNo:deleteAdNo},
+			traditional : true,
+			dataType : "json",
+			success : function(resp) {
+				var returnFlag = true;  /// false : 하나라도 return 이 아닌게 껴있음
+				$(resp.resultList).each(function(idx, code){
+					if(code.dsCode != "RETURN"){
+						returnFlag = false;
+					}
+				});
+				if(!returnFlag){
+					message = resp.message;
+					new Noty({
+						 text: message.text , 
+						 layout: message.layout ,
+						 type: message.type,
+						 timeout: message.timeout ,
+						 progressBar: true
+					}).show();
+				}else {
+					documentDeleteModal.modal();
+				}
+			}
+		});
+	});
+
+	$("#documentDeleteBtn").on("click", function(){
+		documentDeleteModal.modal('hide');
+		let deleteAdNo = [];
+		$("input[name=adNo]:checked").each(function(i){
+			deleteAdNo.push($(this).val())
+		});
+		let message = '';
+		$.ajax({
+			url : $.getContextPath() + "/admin/approvalDocumentDelete"
+			, method : 'post'
+			, data : {deleteAdNo : deleteAdNo}
+			, dataType : 'json'
+			, traditional : true
+			, success : function(resp) {
+				message = resp.message;
+				new Noty({
+					 text: message.text , 
+					 layout: message.layout ,
+					 type: message.type,
+					 timeout: message.timeout ,
+					 progressBar: true
+				}).show();
+				$.approvalAllDocumnetBoxList();
+				$(".approvalBtn").hide();
+				$(".count").hide();
+			}
+		});
+	});
+	
+	listBody.on('click','tr',function(event){
+		let adNo = $(this).data("all").adNo;
+		if(event.target.type == 'checkbox'){
+			return;
+		}
+		location.href = $.getContextPath() + "/admin/approvalDocumentDetail/" + adNo;
+	});
+	
+	
+</script>

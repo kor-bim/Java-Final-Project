@@ -1,0 +1,94 @@
+/**
+ * @author 서대철
+ * @since 2021. 2. 10.
+ * @version 1.0
+ * <pre>
+ * [[개정이력(Modification Information)]]
+ *  수정일        	 수정자       			수정내용
+ * --------     --------    ----------------------
+ * 2021. 2. 10.       서대철       			최초작성
+ * Copyright (c) 2021 by DDIT All right reserved
+ * </pre>
+ */
+@charset "UTF-8";
+
+.label {
+	float: left;
+	margin: 4px 6px 0 0;
+	padding: 1px;
+	border: 1px solid #cacaca;
+}
+
+button {
+	background-color: transparent;
+	-webkit-writing-mode: horizontal-tb !important;
+	text-rendering: auto;
+	color: -internal-light-dark(black, white);
+	letter-spacing: normal;
+	word-spacing: normal;
+	text-transform: none;
+	text-indent: 0px;
+	text-shadow: none;
+	text-align: center;
+	cursor: default;
+	font: 400 13.3333px Arial;
+}
+
+.label .c1 {
+	background-position: -2px -2px;
+}
+
+.label span {
+	display: block;
+	width: 12px;
+	height: 12px;
+}
+
+ul {
+	padding-left: 0px;
+}
+
+li {
+	list-style: none;
+	text-align: -webkit-match-parent;
+}
+
+.c1 {
+	background-color: #ee5074 !important;
+}
+
+.c2 {
+	background-color: #fa7227 !important;
+}
+
+.c3 {
+	background-color: #ac725e !important;
+}
+
+.c4 {
+	background-color: #f7d915 !important;
+}
+
+.c5 {
+	background-color: #a3b90a !important;
+}
+
+.c6 {
+	background-color: #57b92a !important;
+}
+
+.c7 {
+	background-color: #4fced8 !important;
+}
+
+.c8 {
+	background-color: #5990d5 !important;
+}
+
+.c9 {
+	background-color: #777dbf !important;
+}
+
+.c10 {
+	background-color: #844285 !important;
+}

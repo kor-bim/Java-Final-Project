@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.board.dao.DepartmentBoardDAO">
+	<sql id="searchFrag">
+		<if test="searchVO!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+			<choose>
+				<when test="'title'.equals(searchVO.searchType)">
+					AND INSTR(DB_TITLE, #{searchVO.searchWord}) > 0
+				</when>
+				<when test="'writer'.equals(searchVO.searchType)">
+					AND INSTR(A.MEM_ID, #{searchVO.searchWord}) > 0
+				</when>
+				<when test="'content'.equals(searchVO.searchType)">
+					AND INSTR(DB_CONTENT, #{searchVO.searchWord}) > 0
+				</when>
+				<otherwise>
+				AND(INSTR(DB_CONTENT, #{searchVO.searchWord}) > 0
+					OR INSTR(A.MEM_ID, #{searchVO.searchWord}) > 0
+					OR INSTR(DB_TITLE, #{searchVO.searchWord}) > 0)
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+
+	<select id="selectBoardCount" parameterType="PagingVO" resultType="int">
+		SELECT COUNT(*)
+		  FROM DEPT_BOARD A
+		  WHERE A.DEPT_CODE = #{deptCode}
+			<include refid="searchFrag" />
+	</select>
+	
+	<select id="selectBoardList" parameterType="PagingVO" resultType="DepartMentBoardVO">
+		WITH REPLYCNT AS(
+		     SELECT DB_NO
+		          , COUNT(DBR_NO) REP_CNT
+		       FROM DB_REPLY
+		   GROUP BY DB_NO)
+		SELECT B.*
+		  FROM (
+		       SELECT ROWNUM RNUM, A.*
+		         FROM (
+		           <![CDATA[
+		              SELECT A.DB_NO
+		                   , DECODE(LEVEL, 1, '', LPAD('re:', 6*2*(LEVEL-1) + 3, '&nbsp;')) || DB_TITLE DB_TITLE
+		                   , C.MEM_NAME AS MEM_ID
+		                   , TO_CHAR(DB_DATE, 'YYYY-MM-DD HH:MI') DB_DATE
+		                   , DB_HIT
+		                   , DB_PARENT
+		                   , NVL(REP_CNT, 0) REP_CNT
+		                   , DB_DEL_YN
+		                FROM DEPT_BOARD A LEFT OUTER JOIN REPLYCNT B ON (A.DB_NO = B.DB_NO)
+		                                  LEFT OUTER JOIN MEMBER C ON (A.MEM_ID = C.MEM_ID)
+		               WHERE A.DEPT_CODE = #{deptCode}
+		           ]]>
+		       <include refid="searchFrag" />
+		       START WITH DB_PARENT IS NULL
+		       CONNECT BY PRIOR A.DB_NO = DB_PARENT
+		       ORDER SIBLINGS BY A.DB_NO DESC) A) B
+		 WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	
+	<insert id="insertBoard" parameterType="DepartMentBoardVO">
+		<selectKey order="BEFORE" keyProperty="dbNo" resultType="int">
+			SELECT NVL(MAX(DB_NO), 0)+1
+			  FROM DEPT_BOARD
+		</selectKey>
+		INSERT INTO DEPT_BOARD (
+		       DB_NO
+		     , DB_CONTENT
+		     , DB_TITLE
+		     , MEM_ID
+		     , DEPT_CODE
+		    <if test="dbParent!=null and dbParent gt 0">
+		     , BO_PARENT
+		    </if>
+		     ) VALUES (
+		  	   #{dbNo,jdbcType=NUMERIC}
+		  	 , #{dbContent,jdbcType=CLOB}
+		  	 , #{dbTitle,jdbcType=VARCHAR}
+		  	 , #{memId,jdbcType=VARCHAR}
+		  	 , #{deptCode,jdbcType=VARCHAR}
+		    <if test="dbParent!=null and dbParent gt 0">
+		     , #{bo_parent,jdbcType=NUMERIC}
+		    </if>
+	         )
+	</insert>
+	
+	<resultMap type="DepartMentBoardVO" id="departMentBoardMap" autoMapping="true">
+		<id property="dbNo" column="DepartBoardNO"/>
+		<id property="deptCode" column="DBDEPT"/>
+		<collection property="attatchList" ofType="DepartMentBoardAttatchVO" autoMapping="true">
+			<id property="dbaNo" column="DBA_NO"/>
+		</collection>
+	</resultMap>
+	<select id="selectBoard" parameterType="int" resultMap="departMentBoardMap">
+		SELECT A.DB_NO AS DepartBoardNO
+		     , A.DEPT_CODE AS DBDEPT
+		     , DB_TITLE
+		     , DB_DATE
+		     , DB_CONTENT
+		     , D.MEM_NAME AS MEM_ID
+		     , DB_DEL_YN
+		     , DB_PARENT
+		     , DB_HIT
+		     , DBA_NO
+		     , DBA_NAME
+		     , DBA_REALNAME
+		     , DBA_SIZE
+		     , DBA_EXTNS
+		     , DBA_FANCY
+		     , DBR_NO
+		     , DBR_CONTENT
+		     , DBR_DATE
+		     , C.MEM_ID
+		FROM DEPT_BOARD A LEFT OUTER JOIN DB_ATCH B ON(A.DB_NO = B.DB_NO)
+		                  LEFT OUTER JOIN DB_REPLY C ON(A.DB_NO = C.DB_NO)
+		                  LEFT OUTER JOIN MEMBER D ON(A.MEM_ID = D.MEM_ID)
+		WHERE A.DB_NO = #{dbNo} 
+	</select>
+	
+	<update id="incrementHit" parameterType="int">
+		UPDATE DEPT_BOARD
+		   SET DB_HIT = DB_HIT + 1
+		 WHERE DB_NO = #{dbNo}
+	</update>
+	
+	<update id="updateBoard" parameterType="DepartMentBoardVO">
+		UPDATE DEPT_BOARD
+		   SET DB_TITLE = #{dbTitle,jdbcType=VARCHAR},
+		 	   DB_CONTENT = #{dbContent,jdbcType=CLOB}
+		 WHERE DB_NO = #{dbNo}
+	</update>
+	<delete id="deleteBoard" parameterType="int">
+		MERGE INTO DEPT_BOARD A
+		USING(
+		    SELECT COUNT(DB_NO) CNT
+		      FROM DEPT_BOARD
+		     START WITH DB_NO = #{dbNo}
+		   CONNECT BY PRIOR DB_NO = DB_PARENT
+		) B ON (A.DB_NO = #{dbNo})
+		WHEN MATCHED THEN
+		      UPDATE SET
+		             DB_TITLE = '삭제된 글',
+		             DB_CONTENT = '삭제된 글의 내용',
+		             DB_DEL_YN = 'Y'
+		      DELETE WHERE B.CNT = 1
+	</delete>
+</mapper>

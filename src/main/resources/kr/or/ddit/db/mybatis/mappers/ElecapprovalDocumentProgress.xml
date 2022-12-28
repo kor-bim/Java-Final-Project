@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.elecapproval.dao.ElecapprovalDocumentProgressDAO">
+	<sql id="searchFrag">
+		<where>
+			<if test="searchVO!=null and @org.apache.commons.lang3.StringUtils@isNotBlank(searchVO.searchWord)">
+				<choose>
+					<when test="'no'.equals(searchVO.searchType)">
+						INSTR(AD_NO, #{searchVO.searchWord}) > 0
+					</when>
+					<when test="'title'.equals(searchVO.searchType)">
+						INSTR(AD_TITLE, #{searchVO.searchWord}) > 0
+					</when>
+					<when test="'writer'.equals(searchVO.searchType)">
+						INSTR(MEM_ID, #{searchVO.searchWord}) > 0
+					</when>
+					<when test="'doc'.equals(searchVO.searchType)">
+						INSTR(DF_NO, #{searchVO.searchWord}) > 0
+					</when>
+					<otherwise>
+						INSTR(AD_NO, #{searchVO.searchWord}) > 0
+						OR INSTR(AD_TITLE, #{searchVO.searchWord}) > 0
+						OR INSTR(MEM_ID, #{searchVO.searchWord}) > 0
+						OR INSTR(DF_NO, #{searchVO.searchWord}) > 0
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+		 ORDER BY AD_DATE DESC, SUBSTR(AD_NO, 10,4) DESC
+	</sql>
+<!-- 	전체 -->
+	<select id="selectApprovalAllListCount" parameterType="PagingVO" resultType="int">
+		WITH DETAIL AS (
+				SELECT
+		            AL_NO,
+		            ALD_NO,
+		            MEM_ID,
+		            CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		                 WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		                 WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		                 WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		                 WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		                 WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		                 WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		                 WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		                 WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		                 WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		                 WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+				FROM AL_DETAIL
+				WHERE MEM_ID = #{userId}
+		        AND NOT ALDT_CODE IN 'REFERENCE')
+		    , APPROVAL AS ( SELECT AP_NO
+		                         , AD_NO
+		                         , AD_COMMENT
+		                         , AD_RD
+		                         , AD_AD
+		                         , MEM_ID
+		                         , APRVL_TYPE_CODE
+		                         , APRVL_STATE_CODE
+		                    FROM APRVL
+		                   WHERE MEM_ID = #{userId})
+			SELECT COUNT(*)     
+		      FROM (SELECT DOC.AD_NO
+	                        , DOC.AD_TITLE
+	                        , MEMBER.MEM_NAME MEM_ID
+	                        , TO_CHAR(DOC.AD_DATE, 'YYYY-MM-DD') AD_DATE
+	                        , DETAIL.ALDT_CODE AS ALDT_NAME
+	                        , DOC.AD_DEL
+	                        , DOC.AL_NO
+	                        , DOC.DF_NO
+	                        , DOC.DS_CODE
+	                        , APPROVAL.APRVL_STATE_CODE
+                            , CASE WHEN DOC.DS_CODE IN( 'APPROVING', 'DISCUSS') AND APPROVAL.APRVL_STATE_CODE = 'WAIT' THEN '대기'
+                            	   WHEN DOC.DS_CODE IN ('APPROVING', 'DISCUSS') AND APPROVAL.APRVL_STATE_CODE = 'COMPLETE' THEN '진행' 
+                            	   WHEN DOC.DS_CODE = 'COMPLETE' AND APPROVAL.APRVL_STATE_CODE = 'WAIT' THEN '확인' END DS_NAME
+	                   FROM APRVL_DOC DOC  LEFT OUTER JOIN DETAIL ON (DOC.AL_NO = DETAIL.AL_NO)
+	                                       LEFT OUTER JOIN APPROVAL ON (DOC.AD_NO = APPROVAL.AD_NO)
+	                                       LEFT OUTER JOIN MEMBER ON (DOC.MEM_ID = MEMBER.MEM_ID)
+	                   WHERE AD_DEL = 'N'
+	                      AND ((DOC.DS_CODE IN ('APPROVING', 'DISCUSS') AND APPROVAL.APRVL_STATE_CODE IN ('WAIT', 'COMPLETE'))
+	                      		OR (DOC.DS_CODE = 'COMPLETE' AND APPROVAL.APRVL_STATE_CODE = 'WAIT')) 
+	                     AND DETAIL.MEM_ID = #{userId})
+	        <include refid="searchFrag" />
+	</select>
+	<select id="selectApprovalAllList" parameterType="PagingVO" resultType="DocumentProgressVO"> 
+		WITH DETAIL AS (
+				SELECT
+		            AL_NO,
+		            ALD_NO,
+		            MEM_ID,
+		            CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		                 WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		                 WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		                 WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		                 WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		                 WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		                 WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		                 WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		                 WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		                 WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		                 WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+				FROM AL_DETAIL
+			 	WHERE MEM_ID = #{userId}
+		          AND NOT ALDT_CODE IN 'REFERENCE')
+		    , APPROVAL AS ( SELECT AP_NO
+		                         , AD_NO
+		                         , AD_COMMENT
+		                         , AD_RD
+		                         , AD_AD
+		                         , MEM_ID
+		                         , APRVL_TYPE_CODE
+		                         , APRVL_STATE_CODE
+		                    FROM APRVL
+		                   WHERE MEM_ID = #{userId})
+		            SELECT B.*
+				  FROM (SELECT ROWNUM RNUM, A.*
+				            FROM(SELECT DOC.AD_NO
+		                         , DOC.AD_TITLE
+		                         , MEMBER.MEM_NAME MEM_ID
+		                         , TO_CHAR(DOC.AD_DATE, 'YYYY-MM-DD') AD_DATE
+		                         , DETAIL.ALDT_CODE AS ALDT_NAME
+		                         , DOC.AD_DEL
+		                         , DOC.AL_NO
+		                         , DOC.DF_NO
+		                         , DOC.DS_CODE
+		                         , APPROVAL.APRVL_STATE_CODE
+                                 , CASE WHEN DOC.DS_CODE IN( 'APPROVING', 'DISCUSS') AND APPROVAL.APRVL_STATE_CODE = 'WAIT' THEN '대기'
+		                                WHEN DOC.DS_CODE IN ('APPROVING', 'DISCUSS') AND APPROVAL.APRVL_STATE_CODE = 'COMPLETE' THEN '진행' 
+		                                WHEN DOC.DS_CODE = 'COMPLETE' AND APPROVAL.APRVL_STATE_CODE = 'WAIT' THEN '확인' END DS_NAME
+		                    FROM APRVL_DOC DOC  LEFT OUTER JOIN DETAIL ON (DOC.AL_NO = DETAIL.AL_NO)
+		                                        LEFT OUTER JOIN APPROVAL ON (DOC.AD_NO = APPROVAL.AD_NO)
+		                                        LEFT OUTER JOIN MEMBER ON (DOC.MEM_ID = MEMBER.MEM_ID)
+		                    WHERE AD_DEL = 'N'
+	                     	  AND ((DOC.DS_CODE IN ('APPROVING', 'DISCUSS') AND APPROVAL.APRVL_STATE_CODE IN ('WAIT', 'COMPLETE'))
+	                      	      OR (DOC.DS_CODE = 'COMPLETE' AND APPROVAL.APRVL_STATE_CODE = 'WAIT')) 
+		                      AND DETAIL.MEM_ID = #{userId}
+		                      ORDER BY DOC.AD_NO DESC) A
+		                      <include refid="searchFrag" />) B
+		        WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+<!-- 	전체끝 -->
+
+
+<!-- 대기 -->
+	<select id="selectApprovalAwaitListCount" parameterType="PagingVO" resultType="int">
+		WITH DETAIL AS (
+				SELECT
+		            AL_NO,
+		            ALD_NO,
+		            MEM_ID,
+		            CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		                 WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		                 WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		                 WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		                 WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		                 WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		                 WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		                 WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		                 WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		                 WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		                 WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+				FROM AL_DETAIL
+				WHERE MEM_ID = #{userId}
+		        AND NOT ALDT_CODE IN 'REFERENCE')
+		    , APPROVAL AS ( SELECT AP_NO
+		                         , AD_NO
+		                         , AD_COMMENT
+		                         , AD_RD
+		                         , AD_AD
+		                         , MEM_ID
+		                         , APRVL_TYPE_CODE
+		                         , APRVL_STATE_CODE
+		                    FROM APRVL
+		                   WHERE MEM_ID = #{userId})
+			SELECT COUNT(*)     
+		      FROM (SELECT DOC.AD_NO
+	                        , DOC.AD_TITLE
+	                        , MEMBER.MEM_NAME MEM_ID
+	                        , TO_CHAR(DOC.AD_DATE, 'YYYY-MM-DD') AD_DATE
+	                        , DETAIL.ALDT_CODE AS ALDT_NAME
+	                        , DOC.AD_DEL
+	                        , DOC.AL_NO
+	                        , DOC.DF_NO
+	                        , DOC.DS_CODE
+	                        , APPROVAL.APRVL_STATE_CODE
+	                        , CASE WHEN DOC.DS_CODE = 'APPROVING' AND APPROVAL.APRVL_STATE_CODE = 'WAIT' THEN '대기'
+                                   WHEN DOC.DS_CODE = 'DISCUSS'   AND APPROVAL.APRVL_STATE_CODE = 'WAIT' THEN '대기'
+                                   WHEN DOC.DS_CODE = 'DISCUSS'   AND APPROVAL.APRVL_STATE_CODE = 'COMPLETE' THEN '협의요청'
+	                               WHEN DOC.DS_CODE = 'APPROVING' AND APPROVAL.APRVL_STATE_CODE = 'COMPLETE' THEN '진행' END DS_NAME
+	                   FROM APRVL_DOC DOC  LEFT OUTER JOIN DETAIL ON (DOC.AL_NO = DETAIL.AL_NO)
+	                                       LEFT OUTER JOIN APPROVAL ON (DOC.AD_NO = APPROVAL.AD_NO)
+	                                       LEFT OUTER JOIN MEMBER ON (DOC.MEM_ID = MEMBER.MEM_ID)
+	                   WHERE AD_DEL = 'N'
+	                      AND DOC.DS_CODE IN ('APPROVING', 'DISCUSS')
+	                     AND APPROVAL.APRVL_STATE_CODE = 'WAIT'
+	                     AND DETAIL.MEM_ID = #{userId})
+	        <include refid="searchFrag" />
+	</select>
+	<select id="selectApprovalAwaitList" parameterType="PagingVO" resultType="DocumentProgressVO"> 
+		WITH DETAIL AS (
+				SELECT
+		            AL_NO,
+		            ALD_NO,
+		            MEM_ID,
+		            CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		                 WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		                 WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		                 WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		                 WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		                 WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		                 WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		                 WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		                 WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		                 WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		                 WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+				FROM AL_DETAIL
+				WHERE MEM_ID = #{userId}
+		        AND NOT ALDT_CODE IN 'REFERENCE')
+		    , APPROVAL AS ( SELECT AP_NO
+		                         , AD_NO
+		                         , AD_COMMENT
+		                         , AD_RD
+		                         , AD_AD
+		                         , MEM_ID
+		                         , APRVL_TYPE_CODE
+		                         , APRVL_STATE_CODE
+		                    FROM APRVL
+		                   WHERE MEM_ID = #{userId})
+		            SELECT B.*
+				  FROM (SELECT ROWNUM RNUM, A.*
+				            FROM(SELECT DOC.AD_NO
+		                         , DOC.AD_TITLE
+		                         , MEMBER.MEM_NAME MEM_ID
+		                         , TO_CHAR(DOC.AD_DATE, 'YYYY-MM-DD') AD_DATE
+		                         , DETAIL.ALDT_CODE AS ALDT_NAME
+		                         , DOC.AD_DEL
+		                         , DOC.AL_NO
+		                         , DOC.DF_NO
+		                         , DOC.DS_CODE
+		                         , APPROVAL.APRVL_STATE_CODE
+								 , CASE WHEN DOC.DS_CODE = 'APPROVING' AND APPROVAL.APRVL_STATE_CODE = 'WAIT' THEN '대기'
+	                                    WHEN DOC.DS_CODE = 'DISCUSS'   AND APPROVAL.APRVL_STATE_CODE = 'WAIT' THEN '대기'
+	                                    WHEN DOC.DS_CODE = 'DISCUSS'   AND APPROVAL.APRVL_STATE_CODE = 'COMPLETE' THEN '협의요청'
+		                                WHEN DOC.DS_CODE = 'APPROVING' AND APPROVAL.APRVL_STATE_CODE = 'COMPLETE' THEN '진행' END DS_NAME
+		                    FROM APRVL_DOC DOC  LEFT OUTER JOIN DETAIL ON (DOC.AL_NO = DETAIL.AL_NO)
+		                                        LEFT OUTER JOIN APPROVAL ON (DOC.AD_NO = APPROVAL.AD_NO)
+		                                        LEFT OUTER JOIN MEMBER ON (DOC.MEM_ID = MEMBER.MEM_ID)
+		                    WHERE AD_DEL = 'N'
+		                      AND DOC.DS_CODE IN ('APPROVING', 'DISCUSS')
+		                      AND APPROVAL.APRVL_STATE_CODE = 'WAIT'
+		                      AND DETAIL.MEM_ID = #{userId}
+		                      ORDER BY DOC.AD_NO DESC) A
+		                      <include refid="searchFrag" />) B
+		        WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+<!-- 	대기끝 -->
+
+<!-- 확인 -->
+	<select id="selectApprovalConfirmListCount" parameterType="PagingVO" resultType="int">
+		WITH DETAIL AS (
+				SELECT
+		            AL_NO,
+		            ALD_NO,
+		            MEM_ID,
+		            CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		                 WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		                 WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		                 WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		                 WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		                 WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		                 WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		                 WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		                 WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		                 WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		                 WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+				FROM AL_DETAIL
+				WHERE MEM_ID = #{userId}
+		         AND ALDT_CODE = 'REFERENCE')
+		    , APPROVAL AS ( SELECT AP_NO
+		                         , AD_NO
+		                         , AD_COMMENT
+		                         , AD_RD
+		                         , AD_AD
+		                         , MEM_ID
+		                         , APRVL_TYPE_CODE
+		                         , APRVL_STATE_CODE
+		                    FROM APRVL
+		                   WHERE MEM_ID = #{userId}
+		                     AND APRVL_STATE_CODE IN ('WAIT'))
+			SELECT COUNT(*)     
+		      FROM (SELECT DOC.AD_NO
+	                        , DOC.AD_TITLE
+	                        , MEMBER.MEM_NAME MEM_ID
+	                        , TO_CHAR(DOC.AD_DATE, 'YYYY-MM-DD') AD_DATE
+	                        , DETAIL.ALDT_CODE AS ALDT_NAME
+	                        , DOC.AD_DEL
+	                        , DOC.AL_NO
+	                        , DOC.DF_NO
+	                        , DOC.DS_CODE
+	                        , APPROVAL.APRVL_STATE_CODE
+	                        , CASE WHEN DOC.DS_CODE = 'APPROVING' AND APPROVAL.APRVL_STATE_CODE = 'WAIT' THEN '대기'
+	                               WHEN DOC.DS_CODE = 'APPROVING' AND APPROVAL.APRVL_STATE_CODE = 'COMPLETE' THEN '진행' END DS_NAME
+	                        , '승인' DS_RESULT
+                                
+		                    FROM APRVL_DOC DOC  LEFT OUTER JOIN DETAIL ON (DOC.AL_NO = DETAIL.AL_NO)
+		                                        LEFT OUTER JOIN MEMBER ON (DOC.MEM_ID = MEMBER.MEM_ID)
+                                , APPROVAL
+		                    WHERE AD_DEL = 'N'
+		                      AND DOC.DS_CODE = 'COMPLETE'
+                              AND DOC.AD_NO = APPROVAL.AD_NO
+	                     AND DETAIL.MEM_ID = #{userId})
+	        <include refid="searchFrag" />
+	</select>
+	<select id="selectApprovalConfirmList" parameterType="PagingVO" resultType="DocumentProgressVO"> 
+		WITH DETAIL AS (
+				SELECT
+		            AL_NO,
+		            ALD_NO,
+		            MEM_ID,
+		            CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		                 WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		                 WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		                 WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		                 WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		                 WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		                 WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		                 WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		                 WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		                 WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		                 WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+				FROM AL_DETAIL
+				WHERE MEM_ID = #{userId}
+		        AND ALDT_CODE = 'REFERENCE')
+		    , APPROVAL AS ( SELECT AP_NO
+		                         , AD_NO
+		                         , AD_COMMENT
+		                         , AD_RD
+		                         , AD_AD
+		                         , MEM_ID
+		                         , APRVL_TYPE_CODE
+		                         , APRVL_STATE_CODE
+		                    FROM APRVL
+		                   WHERE MEM_ID = #{userId}
+		                    	 AND APRVL_STATE_CODE IN ('WAIT'))
+		            SELECT B.*
+				  FROM (SELECT ROWNUM RNUM, A.*
+				            FROM(SELECT DOC.AD_NO
+		                         , DOC.AD_TITLE
+		                         , MEMBER.MEM_NAME MEM_ID
+		                         , TO_CHAR(DOC.AD_DATE, 'YYYY-MM-DD') AD_DATE
+		                         , DETAIL.ALDT_CODE AS ALDT_NAME
+		                         , DOC.AD_DEL
+		                         , DOC.AL_NO
+		                         , DOC.DF_NO
+		                         , DOC.DS_CODE
+		                         , APPROVAL.APRVL_STATE_CODE
+		                         , CASE WHEN DOC.DS_CODE = 'APPROVING' AND APPROVAL.APRVL_STATE_CODE = 'WAIT' THEN '대기'
+		                                WHEN DOC.DS_CODE = 'APPROVING' AND APPROVAL.APRVL_STATE_CODE = 'COMPLETE' THEN '진행' END DS_NAME
+		                         , CASE WHEN DOC.DS_CODE = 'COMPLETE' THEN '승인'
+                                		WHEN DOC.DS_CODE = 'RETURN' THEN '반려' END DS_RESULT
+                                		
+		                    FROM APRVL_DOC DOC  LEFT OUTER JOIN DETAIL ON (DOC.AL_NO = DETAIL.AL_NO)
+		                                        LEFT OUTER JOIN MEMBER ON (DOC.MEM_ID = MEMBER.MEM_ID)
+                                , APPROVAL
+		                    WHERE AD_DEL = 'N'
+		                      AND DOC.DS_CODE = 'COMPLETE'
+                              AND DOC.AD_NO = APPROVAL.AD_NO
+		                      AND DETAIL.MEM_ID = #{userId}
+		                      AND APPROVAL.APRVL_STATE_CODE IN ('WAIT')
+		                      ORDER BY DOC.AD_NO DESC) A
+		                      <include refid="searchFrag" />) B
+		        WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+<!-- 	확인 끝 -->
+
+<!-- 진행 -->
+	<select id="selectApprovalProgressListCount" parameterType="PagingVO" resultType="int">
+		WITH DETAIL AS (
+				SELECT
+		            AL_NO,
+		            ALD_NO,
+		            MEM_ID,
+		            CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		                 WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		                 WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		                 WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		                 WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		                 WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		                 WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		                 WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		                 WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		                 WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		                 WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+				FROM AL_DETAIL
+				WHERE MEM_ID = #{userId}
+		        AND NOT ALDT_CODE IN 'REFERENCE')
+		    , APPROVAL AS ( SELECT AP_NO
+		                         , AD_NO
+		                         , AD_COMMENT
+		                         , AD_RD
+		                         , AD_AD
+		                         , MEM_ID
+		                         , APRVL_TYPE_CODE
+		                         , APRVL_STATE_CODE
+		                    FROM APRVL
+		                   WHERE MEM_ID = #{userId})
+			SELECT COUNT(*)     
+		      FROM (SELECT DOC.AD_NO
+	                        , DOC.AD_TITLE
+	                        , MEMBER.MEM_NAME MEM_ID
+	                        , TO_CHAR(DOC.AD_DATE, 'YYYY-MM-DD') AD_DATE
+	                        , DETAIL.ALDT_CODE AS ALDT_NAME
+	                        , DOC.AD_DEL
+	                        , DOC.AL_NO
+	                        , DOC.DF_NO
+	                        , DOC.DS_CODE
+	                        , APPROVAL.APRVL_STATE_CODE
+	                        , CASE WHEN DOC.DS_CODE = 'APPROVING' AND APPROVAL.APRVL_STATE_CODE = 'WAIT' THEN '대기'
+	                               WHEN DOC.DS_CODE = 'APPROVING' AND APPROVAL.APRVL_STATE_CODE = 'COMPLETE' THEN '진행' END DS_NAME
+	                   FROM APRVL_DOC DOC  LEFT OUTER JOIN DETAIL ON (DOC.AL_NO = DETAIL.AL_NO)
+	                                       LEFT OUTER JOIN APPROVAL ON (DOC.AD_NO = APPROVAL.AD_NO)
+	                                       LEFT OUTER JOIN MEMBER ON (DOC.MEM_ID = MEMBER.MEM_ID)
+	                   WHERE AD_DEL = 'N'
+	                     AND DOC.DS_CODE IN ('APPROVING', 'DISCUSS')
+	                     AND APPROVAL.APRVL_STATE_CODE = 'COMPLETE'
+	                     AND DETAIL.MEM_ID = #{userId})
+	        <include refid="searchFrag" />
+	</select>
+	<select id="selectApprovalProgressList" parameterType="PagingVO" resultType="DocumentProgressVO"> 
+		WITH DETAIL AS (
+				SELECT
+		            AL_NO,
+		            ALD_NO,
+		            MEM_ID,
+		            CASE WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		                 WHEN ALDT_CODE = 'FINENCIAL_AGREE' THEN '재무합의'  
+		                 WHEN ALDT_CODE = 'DRAFT' THEN '기안'
+		                 WHEN ALDT_CODE = 'APPROVAL' THEN '결재'
+		                 WHEN ALDT_CODE = 'AGREEMENT' THEN '합의'
+		                 WHEN ALDT_CODE = 'APPLY' THEN '신청'
+		                 WHEN ALDT_CODE = 'HANDLING' THEN '처리'
+		                 WHEN ALDT_CODE = 'RECETION' THEN '수신'
+		                 WHEN ALDT_CODE = 'REFERENCE' THEN '참조'
+		                 WHEN ALDT_CODE = 'RECEPT_REFER' THEN '수신참조'
+		                 WHEN ALDT_CODE = 'PASSALONG' THEN '회람' END ALDT_CODE
+				FROM AL_DETAIL
+				WHERE MEM_ID = #{userId}
+		        AND NOT ALDT_CODE IN 'REFERENCE')
+		    , APPROVAL AS ( SELECT AP_NO
+		                         , AD_NO
+		                         , AD_COMMENT
+		                         , AD_RD
+		                         , AD_AD
+		                         , MEM_ID
+		                         , APRVL_TYPE_CODE
+		                         , APRVL_STATE_CODE
+		                    FROM APRVL
+		                   WHERE MEM_ID = #{userId})
+		            SELECT B.*
+				  FROM (SELECT ROWNUM RNUM, A.*
+				            FROM(SELECT DOC.AD_NO
+		                         , DOC.AD_TITLE
+		                         , MEMBER.MEM_NAME MEM_ID
+		                         , TO_CHAR(DOC.AD_DATE, 'YYYY-MM-DD') AD_DATE
+		                         , DETAIL.ALDT_CODE AS ALDT_NAME
+		                         , DOC.AD_DEL
+		                         , DOC.AL_NO
+		                         , DOC.DF_NO
+		                         , DOC.DS_CODE
+		                         , APPROVAL.APRVL_STATE_CODE
+		                         , CASE WHEN DOC.DS_CODE = 'APPROVING' AND APPROVAL.APRVL_STATE_CODE = 'WAIT' THEN '대기'
+		                                WHEN DOC.DS_CODE = 'APPROVING' AND APPROVAL.APRVL_STATE_CODE = 'COMPLETE' THEN '진행' END DS_NAME
+		                    FROM APRVL_DOC DOC  LEFT OUTER JOIN DETAIL ON (DOC.AL_NO = DETAIL.AL_NO)
+		                                        LEFT OUTER JOIN APPROVAL ON (DOC.AD_NO = APPROVAL.AD_NO)
+		                                        LEFT OUTER JOIN MEMBER ON (DOC.MEM_ID = MEMBER.MEM_ID)
+		                    WHERE AD_DEL = 'N'
+		                      AND DOC.DS_CODE IN ('APPROVING', 'DISCUSS')
+		                      AND APPROVAL.APRVL_STATE_CODE = 'COMPLETE'
+		                      AND DETAIL.MEM_ID = #{userId}
+		                      ORDER BY DOC.AD_NO DESC) A
+		                      <include refid="searchFrag" />) B
+		        WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+<!-- 	진행 끝 -->
+</mapper>

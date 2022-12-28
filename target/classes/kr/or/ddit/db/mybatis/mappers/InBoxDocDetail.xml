@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.elecapproval.dao.InBoxDetailDAO">
+	<resultMap type="ApprovalDocVO" id="ApprovalDetailMap" autoMapping="true">
+		<id property="adNo" column="AD_NO" />
+		<association property="memberVO" autoMapping="true"></association>
+		<association property="documentsVO" autoMapping="true"></association>
+		<collection property="lineDetailList" javaType="java.util.List" ofType="LineDetailVO" autoMapping="true"> 
+			<result property="aldNo" column="ALD_NO"/>
+			<result property="memId" column="USER_ID"/>
+			<result property="psName" column="LPSNAME"/>
+			<result property="memSignImg" column="MEM_SIGN_IMG"/>
+			<result property="memName" column="LNAME"/>
+			<result property="aldtCode" column="JNAME"/>
+		</collection>
+	</resultMap>
+	<select id="selectInBoxDetail" parameterType="ApprovalDocVO" resultMap="ApprovalDetailMap">
+		WITH COMNCODE AS (
+		    SELECT CODE PRESCODE, 
+		           CODE_NAME PRESNAME
+		      FROM COMMON_CODE
+		     WHERE GROUP_CODE = 'PRES' 
+		),
+        LINEMEMBER AS (
+            SELECT 
+                   AL_DETAIL.MEM_ID  LID
+                   , V_MEMBER.MEM_NAME LNAME
+                   , V_MEMBER.PS_NAME LPSNAME
+                   , V_MEMBER.MEM_SIGN_IMG
+              FROM AL_DETAIL LEFT OUTER JOIN V_MEMBER ON(AL_DETAIL.MEM_ID = V_MEMBER.MEM_ID)
+                             LEFT OUTER JOIN APRVL_DOC ON(AL_DETAIL.AL_NO = APRVL_DOC.AL_NO)
+              WHERE APRVL_DOC.AD_NO = #{adNo}
+        )
+		SELECT
+		      A.AD_NO,
+		      AD_TITLE,
+		      AD_DATE,
+		      AD_JG_YN,
+		      AD_DG_YN,
+		      AD_HG_YN,
+		      AD_DEL,
+		      AD_CONTENT,
+		      C.MEM_NAME MEM_ID,
+		      A.AL_NO,
+		      DS_CODE,
+		      AD_FINISH_DATE,
+		      B.DEPT_NAME,
+		      D.DF_NAME,
+		      A.DF_NO,
+		      D.SCU_CODE,
+		      D.PRES_CODE,
+		      PRESNAME PRES_NAME,
+		      D.DF_CONTENT,
+              E.AL_NO,
+              E.ALD_NO,
+              E.MEM_ID USER_ID,
+              LINEMEMBER.LNAME,
+              LINEMEMBER.LPSNAME,
+              E.ALDT_CODE JNAME,
+              LINEMEMBER.MEM_SIGN_IMG
+		 FROM APRVL_DOC A LEFT OUTER JOIN MEMBER C ON(A.MEM_ID = C.MEM_ID)
+                          LEFT OUTER JOIN AL_DETAIL E ON (E.AL_NO=A.AL_NO)
+		                  LEFT OUTER JOIN DEPARTMENT B ON(B.DEPT_CODE = C.DEPT_CODE)
+		                  LEFT OUTER JOIN DOC_FORM D ON(A.DF_NO = D.DF_NO)
+		                  , COMNCODE
+                          , LINEMEMBER
+		 WHERE A.AD_NO =  #{adNo}
+		 AND D.PRES_CODE = COMNCODE.PRESCODE
+         AND LINEMEMBER.LID = E.MEM_ID
+	</select>
+	
+<!-- <resultMap type="ApprovalVO" id="approvalMap" autoMapping="true">    -->
+<!-- 	<id property="apNo" column="ap_no" /> -->
+<!-- 	<association property="memberVO" autoMapping="true"/> -->
+<!-- </resultMap>	 -->
+<!-- <select id="retrieveInBoxComment" parameterType="ApprovalVO" resultMap="approvalMap"> -->
+<!-- 	SELECT -->
+<!--     	  ap_no,     -->
+<!--           ad_no, -->
+<!--           ad_comment, -->
+<!--           aprvl.mem_id, -->
+<!--           mem_name, -->
+<!--           mem_img -->
+<!--      FROM aprvl, member -->
+<!--     where aprvl.mem_id = member.mem_id -->
+<!--       and aprvl.ad_no = #{adNo} -->
+<!-- </select> -->
+	
+</mapper>

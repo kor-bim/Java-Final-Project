@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.elecapproval.dao.ApprovalAllDocumentBoxDAO">
+
+	<resultMap type="ApprovalDocVO" id="approvalMap" autoMapping="true">
+		<id property="adNo" column="AD_NO"/>
+		<association property="memberVO" autoMapping="true"></association>
+	</resultMap>
+	<select id="selectApprovalDocumentBoxList" parameterType="ApprovalDocVO" resultMap="approvalMap">
+		WITH APPROVALTYPE AS (
+		    SELECT CODE CODE
+		         , CODE_NAME CNAME
+		      FROM COMMON_CODE
+		     WHERE GROUP_CODE = 'DOC_STATE'
+		),
+		MNAME AS (
+		    SELECT MEM_ID MID
+		          ,MEM_NAME 
+		      FROM MEMBER
+		)
+		SELECT
+		    AD_NO,
+		    AD_TITLE,
+		    MEM_ID,
+		    MNAME.MEM_NAME,
+		    TO_CHAR(AD_DATE, 'YYYY-MM-DD') AD_DATE,
+		    AD_DEL,
+		    AL_NO,
+		    DF_NO,
+		    DS_CODE,
+		    APPROVALTYPE.CNAME DS_NAME,
+		    TO_CHAR(AD_FINISH_DATE, 'YYYY-MM-DD') AD_FINISH_DATE,
+		    AD_CONTENT
+		FROM APRVL_DOC LEFT OUTER JOIN MNAME ON(APRVL_DOC.MEM_ID = MNAME.MID)
+		     ,APPROVALTYPE
+		WHERE DS_CODE = APPROVALTYPE.CODE
+		  AND MEM_ID = MNAME.MID
+		  AND AD_DEL = 'N'
+		ORDER BY AD_NO DESC
+	</select>
+	
+	<resultMap type="ApprovalDocVO" id="documentMap" autoMapping="true">
+		<id property="adNo" column="AD_NO"/>
+		<association property="memberVO" autoMapping="true"></association>
+		<association property="documentsVO" autoMapping="true"></association>
+	</resultMap>
+	<select id="selectDocument" parameterType="ApprovalDocVO" resultMap="documentMap">
+		WITH APPROVALTYPE AS (
+		    SELECT CODE CODE
+		         , CODE_NAME CNAME
+		      FROM COMMON_CODE
+		     WHERE GROUP_CODE = 'DOC_STATE'
+		),
+		PRES AS (
+		    SELECT CODE PCODE, CODE_NAME PNAME
+		      FROM COMMON_CODE 
+		     WHERE GROUP_CODE = 'PRES'
+		),
+		MNAME AS (
+		    SELECT MEM_ID MID
+		          , MEM_NAME
+		          , MEM_IMG
+		          , DEPT_CODE
+		      FROM MEMBER
+		),
+		DFCODE AS(
+		    SELECT DF_NO DFNO
+		         , DF_NAME
+		         , DOC_TYPE_CODE
+		         , SCU_CODE
+		         , PRES_CODE
+		      FROM DOC_FORM
+		),
+		DOCTC AS (
+		    SELECT DOC_TYPE_CODE DTCODE
+		         , DOC_TYPE_NAME DTNAME
+		      FROM DOC_TYPE_CODE
+		),
+		DEPART AS (
+		    SELECT DEPT_CODE DEPTCODE
+		          , DEPT_NAME
+		      FROM DEPARTMENT
+		),
+		ALINE AS(
+		    SELECT AL_NO ALNO
+		         , AL_NAME ALNAME
+		         , AL_CODE ALCODE
+		         , MEM_ID ALMEMID
+		      FROM APRVL_LINE
+		)
+		SELECT
+		    AD_NO,
+		    AD_TITLE,
+		    MEM_ID,
+		    MNAME.MEM_NAME,
+		    MNAME.MEM_IMG MEM_IMG,
+		    MNAME.DEPT_CODE,
+		    DEPART.DEPT_NAME DEPT_NAME,
+		    TO_CHAR(AD_DATE, 'YYYY-MM-DD') AD_DATE,
+		    AD_DEL,
+		    AL_NO,
+		    ALINE.ALCODE AL_CODE,
+		    DF_NO,
+		    DFCODE.SCU_CODE,
+		    DFCODE.PRES_CODE,
+		    DFCODE.DOC_TYPE_CODE,
+		    DOCTC.DTNAME DOC_TYPE_NAME,
+		    PRES.PNAME PRES_NAME,
+		    DS_CODE,
+		    APPROVALTYPE.CNAME DS_NAME,
+		    TO_CHAR(AD_FINISH_DATE, 'YYYY-MM-DD') AD_FINISH_DATE,
+		    AD_CONTENT
+		FROM APRVL_DOC LEFT OUTER JOIN MNAME ON(APRVL_DOC.MEM_ID = MNAME.MID)
+		     , APPROVALTYPE
+		     , DFCODE
+		     , PRES
+		     , DEPART
+		     , DOCTC
+		     , ALINE
+		WHERE DS_CODE = APPROVALTYPE.CODE
+		  AND MEM_ID = MNAME.MID
+		  AND DF_NO = DFCODE.DFNO
+		  AND AL_NO = ALINE.ALNO
+		  AND DFCODE.PRES_CODE = PRES.PCODE
+		  AND MNAME.DEPT_CODE = DEPART.DEPTCODE
+		  AND DFCODE.DOC_TYPE_CODE = DOCTC.DTCODE
+		  AND AD_DEL = 'N'
+		  AND AD_NO = #{adNo, jdbcType=VARCHAR}
+	</select>
+	
+	<update id="deleteDocumentList" parameterType="ApprovalDocVO">
+		UPDATE APRVL_DOC
+		   SET AD_DEL = 'Y'
+		 WHERE AD_NO IN
+		 	<foreach collection="deleteAdNo" item="delNo" open="(" close=")" separator=",">
+			 	#{delNo, jdbcType=VARCHAR}
+		 	</foreach>
+	</update>
+	
+	<update id="deleteDocument" parameterType="ApprovalDocVO">
+		UPDATE APRVL_DOC
+		   SET AD_DEL = 'Y'
+		 WHERE AD_NO = #{adNo, jdbcType=VARCHAR}
+	</update>
+	
+	<select id="selectDocumentCode" parameterType="ApprovalDocVO" resultType="ApprovalDocVO">
+		SELECT AD_NO, DS_CODE
+		  FROM APRVL_DOC
+		 WHERE AD_NO IN
+		 	<foreach collection="deleteAdNo" item="delNo" open="(" close=")" separator=",">
+			 	#{delNo, jdbcType=VARCHAR}
+		 	</foreach>
+	</select>
+</mapper>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd">
+
+
+	<!-- dbInfo 로딩 -->
+<!-- 	<context:property-placeholder location="classpath:kr/or/ddit/db/dbinfo.properties"/> -->
+	
+	<!-- Jasypt 설정 -->
+	<bean id="encryptorConfig" class="org.jasypt.encryption.pbe.config.EnvironmentPBEConfig">  
+	       <property name="algorithm" value="PBEWithMD5AndDES" />  
+	       <!-- 1 -->
+	       <property name="password" value="java" />
+	</bean>  
+	 
+	<bean id="encryptor" class="org.jasypt.encryption.pbe.StandardPBEStringEncryptor">  
+	       <property name="config" ref="encryptorConfig" />  
+	</bean>  
+	 
+	<bean class="org.jasypt.spring31.properties.EncryptablePropertyPlaceholderConfigurer">
+	    <constructor-arg ref="encryptor" />
+	        <property name="locations">
+	            <list>
+	                <value>classpath:kr/or/ddit/db/dbinfo.properties</value>
+	            </list>
+	     </property>
+	</bean>
+
+
+
+
+	
+	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource"
+		p:driverClassName="${maindb.driverClassName}"
+		p:url="${maindb.url}"
+		p:username="${maindb.user}"
+		p:password="${maindb.password}"
+		p:initialSize="${maindb.initialSize}"
+		p:maxTotal="${maindb.maxActive}"
+		p:maxWaitMillis="${maindb.maxWait}"
+	/>
+	
+</beans>

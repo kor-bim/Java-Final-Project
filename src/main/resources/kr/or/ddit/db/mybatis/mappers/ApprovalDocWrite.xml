@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.elecapproval.dao.ApprovalDocWriteDAO">
+
+<!-- 기안하기 -->
+	<!-- 결재라인 insert -->
+	<insert id="insertLine" parameterType="ApprovalDocVO">
+		<selectKey order="BEFORE" keyProperty="alNo" resultType="int">
+			SELECT NVL(MAX(AL_NO), 0)+1
+			  FROM APRVL_LINE
+		</selectKey>
+		INSERT INTO APRVL_LINE(
+		          AL_NO
+		        , MEM_ID
+		        , AL_CODE
+		    )  VALUES (
+		        #{alNo}
+		        , #{memId}
+		        , 'APPROVAL'
+		    )
+	</insert>
+	
+	<!-- 결재라인 상세 -->
+	<insert id="insertLineDetail" parameterType="ApprovalDocVO">	
+		INSERT ALL
+		<foreach collection="lineDetailList" item="detail" index="idx">
+			INTO AL_DETAIL (
+				  AL_NO
+				, ALD_NO
+				, MEM_ID
+				, ALDT_CODE
+			) VALUES (
+				#{alNo}
+				, #{idx}+1
+				, #{detail.memId}
+				, #{detail.aldtCode}
+			)
+		</foreach>
+		SELECT * FROM DUAL
+	</insert>
+
+	<!-- 결재문서 insert  -->
+	<insert id="insertApprovalDocument" parameterType="ApprovalDocVO">
+		<selectKey keyProperty="adNo" resultType="String" order="BEFORE">
+			SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') ||'-'|| LPAD(NVL(MAX(TO_NUMBER(SUBSTR(AD_NO,-4))),0)+1,4,'0') AS AD_NO 
+			FROM APRVL_DOC WHERE AD_DATE LIKE SYSDATE 
+		</selectKey>
+			INSERT INTO APRVL_DOC (
+			      AD_NO        
+				, AD_TITLE     
+				, AD_DATE      
+				, AD_JG_YN     
+				, AD_DG_YN    
+				, AD_HG_YN    
+				, AD_DEL      
+				, MEM_ID      
+				, AL_NO       
+				, DF_NO       
+				, DS_CODE     
+				, AD_CONTENT  
+			) 
+			VALUES (
+			      #{adNo}
+				, #{adTitle}
+				, SYSDATE
+				, 'Y'
+				, 'Y'
+				, 'Y'
+				, 'N'
+				, #{memId}
+				, #{alNo}
+				, #{dfNo}
+				, 'APPROVING'
+				, #{adContent}
+			)
+	</insert>
+	
+	<!-- 결재문서 등록 성공시 : 기안자 승인처리, 다음결재자 대기처리 -->
+	<insert id="insertApprovalList" parameterType="ApprovalDocVO">
+		<selectKey keyProperty="apNo" keyColumn="AP_NO" resultType="int" order="BEFORE">
+			SELECT NVL(MAX(AP_NO), 0)+1 AS AP_NO
+			  FROM APRVL
+		</selectKey>
+			INSERT ALL
+			<foreach collection="lineDetailList" item="line" index="index">
+				INTO APRVL (
+						AP_NO
+						, AD_NO
+						
+						, AD_RD
+						<if test="index == 0">
+							, AD_AD
+						</if>
+						, MEM_ID
+						, APRVL_TYPE_CODE
+						, APRVL_STATE_CODE
+				) VALUES (
+				 	#{apNo} + #{index}
+					, #{adNo}
+					
+					, SYSDATE
+					<if test="index == 0">
+						, SYSDATE
+					</if>
+					, #{line.memId}
+					<choose>
+						<when test="index == 0">
+							, 'OK'					
+							, 'COMPLETE'
+						</when>
+						<otherwise>
+							, ' '					
+							, 'WAIT'
+						</otherwise>
+					</choose>
+				)
+			</foreach>
+			SELECT * FROM DUAL
+	</insert>
+
+
+
+</mapper>
